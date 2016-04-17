@@ -1,3 +1,5 @@
+import scala.collection.mutable.Map
+
 object EcoSim {
   
   class Species {
@@ -34,17 +36,35 @@ object EcoSim {
     }
   }
   
-  class SpeciesString(name: String) {
-    
+
+  implicit def speciesString(name: String) = {
+    GlobalVars.doesExist(name)
   }
-  implicit def speciesString(name: String) = new SpeciesString(name)
+  
+  
+  object GlobalVars {
+    var species = Map[String, Species]()
+    
+    def addSpecie(s: Species) {
+      species += (s.name -> s)
+    }
+    
+    def doesExist(name: String) = {
+      if(species.contains(name)){
+        species(name)
+      }
+    }
+  }
   
   //Species _name of _population growat .4 startingat 0
   //_name parameterType is value
   
   def main(args: Array[String]) = {
     var Frog = new Species called "Frog" of 1000 growat .4 startingat 0
-    Frog.show
+    GlobalVars.addSpecie(Frog)
+    "Frog".show()
+    
+    //"Frog" population is 10
   }
   
 }
