@@ -8,6 +8,8 @@ object EcoSim {
     var growthrate: Double = 0.0
     var starttime: Int = 0
     
+    GlobalVars.addSpecie(this)
+    
     def called(n: String) = {
       name = n
       this
@@ -37,7 +39,7 @@ object EcoSim {
   }
   
 
-  implicit def speciesString(name: String) = {
+  implicit def speciesString(name: String): Species = {
     GlobalVars.doesExist(name)
   }
   
@@ -49,10 +51,9 @@ object EcoSim {
       species += (s.name -> s)
     }
     
-    def doesExist(name: String) = {
-      if(species.contains(name)){
-        species(name)
-      }
+    def doesExist(name: String): Species = {
+      if (species.contains(name)) species(name)
+      else null
     }
   }
   
@@ -60,9 +61,8 @@ object EcoSim {
   //_name parameterType is value
   
   def main(args: Array[String]) = {
-    var Frog = new Species called "Frog" of 1000 growat .4 startingat 0
-    GlobalVars.addSpecie(Frog)
-    "Frog".show()
+    new Species called "Frog" of 1000 growat .4 startingat 0
+    "Frog" show
     
     //"Frog" population is 10
   }
