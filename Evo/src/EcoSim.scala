@@ -8,10 +8,9 @@ object EcoSim {
     var growthrate: Double = 0.0
     var starttime: Int = 0
     
-    GlobalVars.addSpecie(this)
-    
     def called(n: String) = {
       name = n
+      GlobalVars.addSpecie(this)
       this
     }
     
