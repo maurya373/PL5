@@ -2,9 +2,36 @@ import scala.collection.mutable.Map
 
 object EcoSim {
   
+  // probably switch to a double?
+  def simulate(time: Int) = {
+    
+    for(a <- 1 to time) {
+      
+        // all simulation code
+        println("Year " + a + " Populations");
+        println(" ---------- ");
+        println();
+        
+        GlobalVars.species.keys.foreach((sp) => 
+          if (GlobalVars.species.contains(sp)) {
+            var pop = sp._population
+            var gr = sp._growthrate
+            var newpop = pop + (pop*gr)
+            sp.population(newpop)
+            println(sp._name + " : " + sp._population) })
+            
+        println();
+        
+    }
+  }
+  
+  //lets have a way for global events to impact everything
+  //like bad weather kills an entire species 
+  //so events?
+  
   class Species {
     var _name: String = null
-    var _population: Int = 0
+    var _population: Double = 0.0
     var _growthrate: Double = 0.0
     var _starttime: Int = 0
     
@@ -14,7 +41,7 @@ object EcoSim {
       this
     }
     
-    def of(i: Int) = {
+    def of(i: Double) = {
       _population = i
       this
     }
@@ -37,7 +64,7 @@ object EcoSim {
     }
     
     
-    def population(x: Int) {
+    def population(x: Double) {
       _population = x
     }
    
@@ -74,11 +101,16 @@ object EcoSim {
   
   def main(args: Array[String]) = {
     new Species called "Frog" of 1000 growat .4 startingat 0
-    "Frog" population 10
+//    "Frog" population 10
     "Frog" growthrate .3
     "Frog" starttime 2
-    
     "Frog" show
+    
+    new Species called "Fly" of 5000000 growat .1 startingat 0
+    "Fly" show
+    
+    simulate(3)
+    
   }
   
 }
