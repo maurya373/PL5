@@ -2,14 +2,13 @@ import scala.collection.mutable.Map
 
 object EcoSim {
 
-  var Simulation_Time : Int = 1;
-  
+  var Simulation_Time: Int = 0;
+
   // probably want to switch to a double eventually
   def simulate(time: Int) = {
 
-    for (a <- 1 to time) {
-    
-      
+    for (a <- 0 to time) {
+
       // all simulation code
       println("Year " + Simulation_Time + " Populations");
       println(" ---------- ");
@@ -19,7 +18,7 @@ object EcoSim {
           sp.update(1) //update the population by one time unit
           sp.showNumbers()
         })
-        
+
       GlobalVars.events.keys.foreach((ev) =>
         if (GlobalVars.events.contains(ev)) {
           ev.runAll()
@@ -36,7 +35,7 @@ object EcoSim {
   //so events?
 
   class Species {
-    
+
     // private vars for Species
     var _name: String = null
     var _population: Int = 0
@@ -83,6 +82,7 @@ object EcoSim {
 
     // Setter for species population
     def population(x: Int) {
+      println("setting population to " + x)
       _population = x
     }
 
@@ -98,70 +98,94 @@ object EcoSim {
 
     // Updates the population based on the growth
     def update(t: Int) = population(grow(t))
-    
+
     // Grows the population by growth rate for duration time t  
-    private def grow(t: Int): Int = 
+    private def grow(t: Int): Int =
       if (t > 0) (_population + (_population * _growthrate)).toInt
       else grow(t - 1)
-    
+
   }
 
   implicit def speciesString(name: String): Species = {
     GlobalVars.getSpecies(name)
   }
-  
+
   implicit def eventString(name: String): Event = {
     GlobalVars.getEvent(name)
   }
-  
-  
+
   // Need to think about how to structure these event defs within the code properly
   // I Just took a shortcut for now, but we want these to be
   // linked to a particular event
-//  def populationUpdate(name: String, pop: Int) {
-//    GlobalVars.getSpecies(name).population(pop)
-//  }
-//    
-//  def growthRateUpdate(name: String, gr: Double) {
-//    GlobalVars.getSpecies(name).growat(gr)
-//  }
-  
+  //  def populationUpdate(name: String, pop: Int) {
+  //    GlobalVars.getSpecies(name).population(pop)
+  //  }
+  //    
+  //  def growthRateUpdate(name: String, gr: Double) {
+  //    GlobalVars.getSpecies(name).growat(gr)
+  //  }
+
   class Event {
-    
-    var _name: String = null 
-    var _time: Int = 0 
-    
+
+    var _name: String = null
+    var _time: Int = 0
+
     // list of commands for this event
     var commands = Map[String, List[Any]]()
-    
+
+    var _statements: List[Any] = null
+
     // Setter for event name
     def called(n: String) = {
       _name = n
       GlobalVars.addEvent(this)
       this
     }
-    
+
     def occursAtTime(t: Int) = {
       _time = t
       this
     }
-    
+
+    def show() {
+      println(_name + " occurs at " + _time)
+    }
+
     def runAll() {
-      
       // Add the rest later
       commands.keys.foreach((cm) =>
         if (cm.equals("PopUpdate")) {
           internalPopUpdate(commands(cm))
         })
-      
+        
+        
+        if (_time == Simulation_Time) {
+          println("time is " + _time)
+          execute()
+        }
     }
-    
+
+    def execute() {
+      println(Simulation_Time)
+      var s: Any = null
+      for (s <- _statements) {
+        s
+        println(s)
+      }
+    }
+
+    def define(statements: => List[Any]) = {
+      println("define")
+      _statements = statements
+      println("set it")
+    }
+
     // Here temporarily until we realize better structure
     // Add to commands list
     def populationUpdate(name: String, pop: Int) {
       commands += ("PopUpdate" -> List(name, pop))
     }
-    
+
     // Actual execution method
     def internalPopUpdate(l: List[Any]) {
       if (Simulation_Time == _time) {
@@ -170,24 +194,24 @@ object EcoSim {
         GlobalVars.getSpecies(tempName).population(tempPop)
       }
     }
-    
+
     def growthRateUpdate(name: String, gr: Double) {
       if (Simulation_Time == _time)
         GlobalVars.getSpecies(name).growat(gr)
     }
-    
+
   }
 
   // Object of Global Variables for program users to interact with
   object GlobalVars {
-    
+
     var species = Map[String, Species]()
     var events = Map[String, Event]()
 
     def addSpecies(s: Species) {
       species += (s._name -> s)
     }
-    
+
     def addEvent(e: Event) {
       events += (e._name -> e)
     }
@@ -196,12 +220,16 @@ object EcoSim {
       if (species.contains(name)) species(name)
       else null
     }
-    
+
     def getEvent(name: String): Event = {
       if (events.contains(name)) events(name)
       else null
     }
-    
+
+  }
+
+  def Expression() {
+
   }
 
   //Species _name of _population growat .4 startingat 0
@@ -209,18 +237,30 @@ object EcoSim {
 
   def main(args: Array[String]) = {
     new Species called "Frog" of 1000 growat .2 startingat 0
-    "Frog" growthrate 0
-    "Frog" starttime 2
-    "Frog" showAll
-
+    //"Frog" growthrate 0
+    //"Frog".growthrate(0)
+    //"Frog" starttime 2 
+    //"Frog" show
     new Species called "Fly" of 5000000 growat .1 startingat 0
-//    "Fly" showAll
+    //    "Fly" showAll
 
-    println()
-    
     // population update is reflected in year 3 (after year 2)
-    new Event called "Earthquake" occursAtTime 2 populationUpdate ("Frog", 373) 
+    //new Event called "Earthquake" occursAtTime 2 populationUpdate ("Frog", 373)
+    new Event called "anotherone" occursAtTime 2
+    "anotherone" define List(
+      "Frog" population 5000,
+      "Fly" population 3340)
     
+    println("done")
+
+    //        for i 1 20 loop
+    //          print "Frog" showAll
+    //        endloop
+    //        if "Frog" population < "Fly" population startif
+    //          populationUpdate("Frog", 0)
+    //        endif
+    //        populationUpdate ("Frog", 373)
+
     simulate(3)
 
   }
