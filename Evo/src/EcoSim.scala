@@ -18,6 +18,7 @@ object EcoSim {
         if (GlobalVars.species.contains(sp)) {
           sp.update(1) //update the population by one time unit
           sp.showNumbers()
+          
         })
         
       GlobalVars.events.keys.foreach((ev) =>
@@ -30,6 +31,10 @@ object EcoSim {
 
     }
   }
+  
+  def showEnvironment(time: Int) = {
+    
+  }
 
   //lets have a way for global events to impact everything
   //like bad weather kills an entire species 
@@ -39,7 +44,7 @@ object EcoSim {
     
     // private vars for Species
     var _name: String = null
-    var _population: Int = 0
+    var _population: Long = 0
     var _growthrate: Double = 0.0
     var _starttime: Int = 0
 
@@ -51,7 +56,7 @@ object EcoSim {
     }
 
     // Setter for species population
-    def of(i: Int) = {
+    def of(i: Long) = {
       _population = i
       this
     }
@@ -71,18 +76,20 @@ object EcoSim {
     // Show all data for the a particular species
     def showAll() {
       println("Name: " + _name)
-      println("Population: " + _population)
+      print("Population: ")
+      println(prettyPrintNum(_population))
       println("Growth rate: " + _growthrate)
       println("Start time: " + _starttime)
     }
 
     // print name and population
     def showNumbers() {
-      println(_name + ": " + _population)
+      print(_name + ": ")
+      println(prettyPrintNum(_population))
     }
 
     // Setter for species population
-    def population(x: Int) {
+    def population(x: Long) {
       _population = x
     }
 
@@ -100,11 +107,35 @@ object EcoSim {
     def update(t: Int) = population(grow(t))
     
     // Grows the population by growth rate for duration time t  
-    private def grow(t: Int): Int = 
-      if (t > 0) (_population + (_population * _growthrate)).toInt
+    private def grow(t: Int): Long = { 
+      if (t > 0) (_population + (_population * _growthrate)).toLong
       else grow(t - 1)
+    }
+      
     
   }
+  
+  def prettyPrintNum(number: Long): String={
+      if(number > 1000000000000L){
+        var numString = (number/1000000000000f).toString()
+        return numString + " trillion"
+      }
+      else if(number > 1000000000L){
+        var numString = (number/1000000000f).toString()
+        return numString + " billion"
+      }
+      else if(number > 1000000L){
+        var numString = (number/1000000f).toString()
+        return numString+ " million"
+      }
+      else if(number > 1000L){
+        var numString = (number/1000f).toString()
+        return numString + " thousand"
+      }
+      else{
+        return number.toString()
+      }
+    }
 
   implicit def speciesString(name: String): Species = {
     GlobalVars.getSpecies(name)
@@ -152,28 +183,44 @@ object EcoSim {
       commands.keys.foreach((cm) =>
         if (cm.equals("PopUpdate")) {
           internalPopUpdate(commands(cm))
-        })
+        }
+        else if (cm.equals("GrowthRateUpdate")){
+          internalGrowthRateUpdate(commands(cm))
+        }
+        )
       
     }
     
     // Here temporarily until we realize better structure
     // Add to commands list
-    def populationUpdate(name: String, pop: Int) {
+    def populationUpdate(name: String, pop: Long) {
       commands += ("PopUpdate" -> List(name, pop))
+      
     }
     
     // Actual execution method
     def internalPopUpdate(l: List[Any]) {
       if (Simulation_Time == _time) {
         var tempName = l(0).toString()
-        var tempPop = l(1).toString().toInt
+        var tempPop = l(1).toString().toLong
+//        println(tempName.toString())
+//        println(tempPop.toString())
         GlobalVars.getSpecies(tempName).population(tempPop)
+        println("*"+this._name+" event changes "+tempName+" population to "+prettyPrintNum(tempPop))
+      }
+    }
+    
+    def internalGrowthRateUpdate(l: List[Any]){
+      if(Simulation_Time == _time){
+        var tempName = l(0).toString()
+        var tempRate = l(1).toString().toDouble
+        GlobalVars.getSpecies(tempName).growat(tempRate)
+        println("*"+this._name+" event changes "+tempName+" growth rate to "+tempRate.toString())
       }
     }
     
     def growthRateUpdate(name: String, gr: Double) {
-      if (Simulation_Time == _time)
-        GlobalVars.getSpecies(name).growat(gr)
+      commands += ("GrowthRateUpdate" -> List(name, gr))  
     }
     
   }
@@ -208,20 +255,25 @@ object EcoSim {
   //_name parameterType is value
 
   def main(args: Array[String]) = {
-    new Species called "Frog" of 1000 growat .2 startingat 0
+    new Species called "Frog" of 5010000000L growat .2 startingat 0
     "Frog" growthrate 0
     "Frog" starttime 2
     "Frog" showAll
 
-    new Species called "Fly" of 5000000 growat .1 startingat 0
+    new Species called "Mosquito" of 5000000 growat .1 startingat 0
 //    "Fly" showAll
 
     println()
     
     // population update is reflected in year 3 (after year 2)
-    new Event called "Earthquake" occursAtTime 2 populationUpdate ("Frog", 373) 
+    new Event called "Earthquake" occursAtTime 2 populationUpdate ("Frog", 373)
+    new Event called "Zika" occursAtTime 2 growthRateUpdate ("Mosquito", .01) 
     
     simulate(3)
+    
+    
+    
+    
 
   }
 
