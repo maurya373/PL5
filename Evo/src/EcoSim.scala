@@ -2,7 +2,7 @@ import scala.collection.mutable.Map
 
 object EcoSim {
 
-  var Simulation_Time: Int = 0;
+  abstract sealed class EvoStatement
 
   // probably want to switch to a double eventually
   def simulate(time: Int) = {
@@ -10,9 +10,9 @@ object EcoSim {
     for (a <- 0 to time) {
 
       // all simulation code
-      println("Year " + Simulation_Time + " Populations");
+      println("Year " + GlobalVars.simulation_Time + " Populations");
       println(" ---------- ");
-
+        
       GlobalVars.species.keys.foreach((sp) =>
         if (GlobalVars.species.contains(sp)) {
           sp.update(1) //update the population by one time unit
@@ -24,7 +24,7 @@ object EcoSim {
           ev.runAll()
         })
 
-      Simulation_Time += 1
+      GlobalVars.simulation_Time += 1
       println();
 
     }
@@ -133,7 +133,7 @@ object EcoSim {
     // list of commands for this event
     var commands = Map[String, List[Any]]()
 
-    var _statements: List[Any] = null
+    var _statements: () => Unit = _
 
     // Setter for event name
     def called(n: String) = {
@@ -152,32 +152,25 @@ object EcoSim {
     }
 
     def runAll() {
+      //execute event if it's time
+      if (_time-1 == GlobalVars.simulation_Time) {
+        println("time is " + _time)
+        execute()
+      }
+
       // Add the rest later
       commands.keys.foreach((cm) =>
         if (cm.equals("PopUpdate")) {
           internalPopUpdate(commands(cm))
         })
-        
-        
-        if (_time == Simulation_Time) {
-          println("time is " + _time)
-          execute()
-        }
     }
 
     def execute() {
-      println(Simulation_Time)
-      var s: Any = null
-      for (s <- _statements) {
-        s
-        println(s)
-      }
+      _statements.apply()
     }
 
-    def define(statements: => List[Any]) = {
-      println("define")
+    def define(statements: Function0[Unit]) = {
       _statements = statements
-      println("set it")
     }
 
     // Here temporarily until we realize better structure
@@ -188,7 +181,7 @@ object EcoSim {
 
     // Actual execution method
     def internalPopUpdate(l: List[Any]) {
-      if (Simulation_Time == _time) {
+      if (GlobalVars.simulation_Time == _time) {
         var tempName = l(0).toString()
         var tempPop = l(1).toString().toInt
         GlobalVars.getSpecies(tempName).population(tempPop)
@@ -196,7 +189,7 @@ object EcoSim {
     }
 
     def growthRateUpdate(name: String, gr: Double) {
-      if (Simulation_Time == _time)
+      if (GlobalVars.simulation_Time == _time)
         GlobalVars.getSpecies(name).growat(gr)
     }
 
@@ -204,6 +197,8 @@ object EcoSim {
 
   // Object of Global Variables for program users to interact with
   object GlobalVars {
+
+    var simulation_Time: Int = 0;
 
     var species = Map[String, Species]()
     var events = Map[String, Event]()
@@ -228,13 +223,10 @@ object EcoSim {
 
   }
 
-  def Expression() {
-
-  }
 
   //Species _name of _population growat .4 startingat 0
   //_name parameterType is value
-
+  
   def main(args: Array[String]) = {
     new Species called "Frog" of 1000 growat .2 startingat 0
     //"Frog" growthrate 0
@@ -243,14 +235,33 @@ object EcoSim {
     //"Frog" show
     new Species called "Fly" of 5000000 growat .1 startingat 0
     //    "Fly" showAll
+    
+    /*new Event called "e" occursAtTime 2
+    "e" define {
+      () => "Frog" population 5000
+      () => "Fly" population 3340
+    }*/
 
     // population update is reflected in year 3 (after year 2)
     //new Event called "Earthquake" occursAtTime 2 populationUpdate ("Frog", 373)
-    new Event called "anotherone" occursAtTime 2
-    "anotherone" define List(
-      "Frog" population 5000,
-      "Fly" population 3340)
     
+    //"anotherone".define { () => ??? }
+    new Event called "anotherone" occursAtTime 2
+    "anotherone" define (() => {
+      "Frog" population 5000
+      "Fly" population 3340
+    })
+    
+    /*"anotherone" define new Gilad({
+      "Frog" population 5000
+      "Fly" population 3340
+    })*/
+    
+    /*(() => {
+      "Frog" population 5000
+      "Fly" population 3340
+    })*/
+
     println("done")
 
     //        for i 1 20 loop
