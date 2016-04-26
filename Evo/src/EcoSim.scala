@@ -7,32 +7,43 @@ object EcoSim {
   // probably want to switch to a double eventually
   def simulate(time: Int) = {
 
-    for (a <- 0 to time) {
-
+    //do time-1 because loop is inclusive
+    for (a <- 0 to time - 1) {
+      
       // all simulation code
-      println("Year " + GlobalVars.simulation_Time + " Populations");
-      println(" ---------- ");
-        
-      GlobalVars.species.keys.foreach((sp) =>
-        if (GlobalVars.species.contains(sp)) {
-          sp.update(1) //update the population by one time unit
-          sp.showNumbers()
-          
-        })
-
+      println("Time Step " + (GlobalVars.simulation_Time + 1) + " Data");
+      println(" _______________________ ");
+      
       GlobalVars.events.keys.foreach((ev) =>
         if (GlobalVars.events.contains(ev)) {
           ev.runAll()
         })
-
+      
+      GlobalVars.species.keys.foreach((sp) =>
+        if (GlobalVars.species.contains(sp)) {
+          if (sp._starttime <= GlobalVars.simulation_Time){
+            sp.update(1) //update the population by one time unit
+            
+          }
+          sp.showNumbers()
+        })
+      
+        
       GlobalVars.simulation_Time += 1
       println();
 
     }
   }
   
-  def showEnvironment(time: Int) = {
-    
+  //print state of the entire ecosystem, i.e. all species
+  def showEcosystem() = {
+    println("State at beginning of time step: " + GlobalVars.simulation_Time)
+    println()
+    GlobalVars.species.keys.foreach((sp) =>
+        if (GlobalVars.species.contains(sp)) {
+          sp.showAll()
+          println("-------------------------------------")
+        })
   }
 
   //lets have a way for global events to impact everything
@@ -43,8 +54,9 @@ object EcoSim {
 
     // private vars for Species
     var _name: String = null
-    var _population: Long = 0
-    var _growthrate: Double = 0.0
+    var _population: Int = 0
+    var _birthrate: Double = 0.0
+    var _deathrate: Double = 0.0
     var _starttime: Int = 0
 
     // Setter for species name
@@ -55,14 +67,21 @@ object EcoSim {
     }
 
     // Setter for species population
-    def of(i: Long) = {
+    def of(i: Int) = {
       _population = i
+      this
+    }
+    
+    
+    // Setter for species growth rate
+    def deathrate(x: Double) = {
+      _deathrate = x
       this
     }
 
     // Setter for species growth rate
-    def growat(x: Double) = {
-      _growthrate = x
+    def birthrate(x: Double) = {
+      _birthrate = x
       this
     }
 
@@ -75,28 +94,25 @@ object EcoSim {
     // Show all data for the a particular species
     def showAll() {
       println("Name: " + _name)
-      print("Population: ")
-      println(prettyPrintNum(_population))
-      println("Growth rate: " + _growthrate)
+      println("Population: " + _population)
+      println("Birth rate: " + _birthrate)
+      println("Death rate: " + _deathrate)
       println("Start time: " + _starttime)
     }
 
     // print name and population
     def showNumbers() {
-      print(_name + ": ")
-      println(prettyPrintNum(_population))
+      println(_name + " Population: " + _population)
     }
 
     // Setter for species population
-
-    def population(x: Long) {
-      println("setting population to " + x)
+    def population(x: Int) {
+//      println("setting " + _name + " population to " + x)
       _population = x
     }
-
-    // Setter for species growth rate
-    def growthrate(x: Double) {
-      _growthrate = x
+    
+    def population() : Long = {
+      this._population
     }
 
     // Setter for species start time
@@ -108,43 +124,17 @@ object EcoSim {
     def update(t: Int) = population(grow(t))
 
     // Grows the population by growth rate for duration time t  
-
-    private def grow(t: Int): Long = { 
-      if (t > 0) (_population + (_population * _growthrate)).toLong
+    private def grow(t: Int): Int =
+      if (t > 0) (_population + (_population * _birthrate).toInt - (_population * _deathrate).toInt)
       else grow(t - 1)
-    }
-      
-    
 
-}
-  
-  def prettyPrintNum(number: Long): String={
-      if(number > 1000000000000L){
-        var numString = (number/1000000000000f).toString()
-        return numString + " trillion"
-      }
-      else if(number > 1000000000L){
-        var numString = (number/1000000000f).toString()
-        return numString + " billion"
-      }
-      else if(number > 1000000L){
-        var numString = (number/1000000f).toString()
-        return numString+ " million"
-      }
-      else if(number > 1000L){
-        var numString = (number/1000f).toString()
-        return numString + " thousand"
-      }
-      else{
-        return number.toString()
-      }
-    }
+  }
 
   implicit def speciesString(name: String): Species = {
     GlobalVars.getSpecies(name)
   }
 
-  implicit def eventString(name: String): Event = {
+  implicit def eventString(name: String): DeterministicEvent = {
     GlobalVars.getEvent(name)
   }
 
@@ -159,7 +149,7 @@ object EcoSim {
   //    GlobalVars.getSpecies(name).growat(gr)
   //  }
 
-  class Event {
+  class DeterministicEvent {
 
     var _name: String = null
     var _time: Int = 0
@@ -187,8 +177,8 @@ object EcoSim {
 
     def runAll() {
       //execute event if it's time
-      if (_time-1 == GlobalVars.simulation_Time) {
-        println("time is " + _time)
+      if (_time == GlobalVars.simulation_Time) {
+        println("************** "+ _name + " occurred **************")
         execute()
       }
 
@@ -196,16 +186,11 @@ object EcoSim {
       commands.keys.foreach((cm) =>
         if (cm.equals("PopUpdate")) {
           internalPopUpdate(commands(cm))
-        }
-        else if (cm.equals("GrowthRateUpdate")){
-          internalGrowthRateUpdate(commands(cm));
         })
-
     }
 
     def execute() {
       _statements.apply()
-
     }
 
     def define(statements: Function0[Unit]) = {
@@ -214,34 +199,27 @@ object EcoSim {
 
     // Here temporarily until we realize better structure
     // Add to commands list
-    def populationUpdate(name: String, pop: Long) {
+    def populationUpdate(name: String, pop: Int) {
       commands += ("PopUpdate" -> List(name, pop))
-      
     }
 
     // Actual execution method
     def internalPopUpdate(l: List[Any]) {
       if (GlobalVars.simulation_Time == _time) {
         var tempName = l(0).toString()
-        var tempPop = l(1).toString().toLong
-//        println(tempName.toString())
-//        println(tempPop.toString())
+        var tempPop = l(1).toString().toInt
         GlobalVars.getSpecies(tempName).population(tempPop)
-        println("*"+this._name+" event changes "+tempName+" population to "+prettyPrintNum(tempPop))
-      }
-    }
-    
-    def internalGrowthRateUpdate(l: List[Any]){
-      if(GlobalVars.simulation_Time == _time){
-        var tempName = l(0).toString()
-        var tempRate = l(1).toString().toDouble
-        GlobalVars.getSpecies(tempName).growat(tempRate)
-        println("*"+this._name+" event changes "+tempName+" growth rate to "+tempRate.toString())
       }
     }
 
-    def growthRateUpdate(name: String, gr: Double) {
-      commands += ("GrowthRateUpdate" -> List(name, gr))  
+    def birthRateUpdate(name: String, br: Double) {
+      if (GlobalVars.simulation_Time == _time)
+        GlobalVars.getSpecies(name).birthrate(br)
+    }
+    
+    def deathRateUpdate(name: String, dr: Double) {
+      if (GlobalVars.simulation_Time == _time)
+        GlobalVars.getSpecies(name).deathrate(dr)
     }
 
   }
@@ -252,13 +230,13 @@ object EcoSim {
     var simulation_Time: Int = 0;
 
     var species = Map[String, Species]()
-    var events = Map[String, Event]()
+    var events = Map[String, DeterministicEvent]()
 
     def addSpecies(s: Species) {
       species += (s._name -> s)
     }
 
-    def addEvent(e: Event) {
+    def addEvent(e: DeterministicEvent) {
       events += (e._name -> e)
     }
 
@@ -267,7 +245,7 @@ object EcoSim {
       else null
     }
 
-    def getEvent(name: String): Event = {
+    def getEvent(name: String): DeterministicEvent = {
       if (events.contains(name)) events(name)
       else null
     }
@@ -279,21 +257,9 @@ object EcoSim {
   //_name parameterType is value
   
   def main(args: Array[String]) = {
-    new Species called "Frog" of 5010000000L growat .2 startingat 0
-    "Frog" growthrate 0
-    "Frog" starttime 2
-    "Frog" showAll
-
-    new Species called "Mosquito" of 5000000 growat .1 startingat 0
-//    "Fly" showAll
     
-    new Species called "Frog" of 1000 growat .2 startingat 0
-    //"Frog" growthrate 0
-    //"Frog".growthrate(0)
-    //"Frog" starttime 2 
-    //"Frog" show
-    new Species called "Fly" of 5000000 growat .1 startingat 0
-    //    "Fly" showAll
+    new Species called "Frog" of 100 birthrate 1 deathrate 0.5 startingat 0
+    new Species called "Fly" of 1000 birthrate 1 deathrate 0.5 startingat 0
     
     /*new Event called "e" occursAtTime 2
     "e" define {
@@ -302,20 +268,17 @@ object EcoSim {
     }*/
 
     // population update is reflected in year 3 (after year 2)
-
     //new Event called "Earthquake" occursAtTime 2 populationUpdate ("Frog", 373)
     
     //"anotherone".define { () => ??? }
-
-    new Event called "Earthquake" occursAtTime 2 populationUpdate ("Frog", 373)
-    new Event called "Zika" occursAtTime 2 growthRateUpdate ("Mosquito", .01) 
-
-
-    new Event called "anotherone" occursAtTime 2
-    "anotherone" define (() => {
-      "Frog" population 5000
-      "Fly" population 3340
+    new DeterministicEvent called "Tornado" occursAtTime 1
+    "Tornado" define (() => {
+      "Frog" population 0
+      "Fly" population 0
+      new Species called "Jans" of 1000 birthrate 2 deathrate 0.5 startingat 2
     })
+    
+    
     
     /*"anotherone" define new Gilad({
       "Frog" population 5000
@@ -327,8 +290,6 @@ object EcoSim {
       "Fly" population 3340
     })*/
 
-    println("done")
-
     //        for i 1 20 loop
     //          print "Frog" showAll
     //        endloop
@@ -337,12 +298,18 @@ object EcoSim {
     //        endif
     //        populationUpdate ("Frog", 373)
 
+    showEcosystem()
     simulate(3)
+    showEcosystem()
     
+    if(("Jans" population) <  ("Fly" population)){
+      "Frog" population 5000
+    }
+    else{
+      "Frog" population 6000
+    }
     
-    
-    
-
+    showEcosystem()
   }
 
 }
