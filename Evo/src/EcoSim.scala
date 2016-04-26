@@ -54,7 +54,7 @@ object EcoSim {
 
     // private vars for Species
     var _name: String = null
-    var _population: Int = 0
+    var _population: Long = 0
     var _birthrate: Double = 0.0
     var _deathrate: Double = 0.0
     var _starttime: Int = 0
@@ -106,7 +106,7 @@ object EcoSim {
     }
 
     // Setter for species population
-    def population(x: Int) {
+    def population(x: Long) {
 //      println("setting " + _name + " population to " + x)
       _population = x
     }
@@ -124,8 +124,8 @@ object EcoSim {
     def update(t: Int) = population(grow(t))
 
     // Grows the population by growth rate for duration time t  
-    private def grow(t: Int): Int =
-      if (t > 0) (_population + (_population * _birthrate).toInt - (_population * _deathrate).toInt)
+    private def grow(t: Int): Long =
+      if (t > 0) (_population + (_population * _birthrate).toLong - (_population * _deathrate).toLong)
       else grow(t - 1)
 
   }
@@ -307,6 +307,12 @@ object EcoSim {
     }
     else{
       "Frog" population 6000
+    }
+    
+    while(("Jans" population) > 0){
+      //Kill one Jan
+      var newPop = ("Jans" population)-1
+      "Jans" population newPop
     }
     
     showEcosystem()
