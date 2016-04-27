@@ -2,23 +2,32 @@ import scala.collection.mutable.Map
 
 object EcoSim {
 
-  abstract sealed class EvoStatement
+  var rand = scala.util.Random
 
   // probably want to switch to a double eventually
   def simulate(time: Int) = {
-
-    //do time-1 because loop is inclusive
+    //do time-1 because loop is inclusive    
     for (a <- 0 to time - 1) {
       
       // all simulation code
       println("Time Step " + (GlobalVars.simulation_Time + 1) + " Data");
       println(" _______________________ ");
       
-      GlobalVars.events.keys.foreach((ev) =>
-        if (GlobalVars.events.contains(ev)) {
+      GlobalVars.deterministicEvents.keys.foreach((ev) =>
+        if (GlobalVars.deterministicEvents.contains(ev)) {
           ev.runAll()
         })
-      
+        
+      GlobalVars.randomEvents.keys.foreach((ev) => {
+        if (GlobalVars.randomEvents.contains(ev)) {
+          val r = rand.nextDouble()
+          val evRandom: RandomEvent = ev.asInstanceOf[RandomEvent]
+          if (evRandom.getProbability() < r) {
+            ev.runAll()
+          }
+        }
+      })
+
       GlobalVars.species.keys.foreach((sp) =>
         if (GlobalVars.species.contains(sp)) {
           if (sp._starttime <= GlobalVars.simulation_Time){
@@ -27,7 +36,7 @@ object EcoSim {
           }
           sp.showNumbers()
         })
-      
+
         
       GlobalVars.simulation_Time += 1
       println();
@@ -44,6 +53,7 @@ object EcoSim {
           sp.showAll()
           println("-------------------------------------")
         })
+    println()
   }
 
   //lets have a way for global events to impact everything
@@ -54,7 +64,7 @@ object EcoSim {
 
     // private vars for Species
     var _name: String = null
-    var _population: Int = 0
+    var _population: Long = 0
     var _birthrate: Double = 0.0
     var _deathrate: Double = 0.0
     var _starttime: Int = 0
@@ -106,9 +116,13 @@ object EcoSim {
     }
 
     // Setter for species population
-    def population(x: Int) {
+    def population(x: Long) {
 //      println("setting " + _name + " population to " + x)
       _population = x
+    }
+    
+    def population() : Long = {
+      this._population
     }
 
     // Setter for species start time
@@ -120,8 +134,8 @@ object EcoSim {
     def update(t: Int) = population(grow(t))
 
     // Grows the population by growth rate for duration time t  
-    private def grow(t: Int): Int =
-      if (t > 0) (_population + (_population * _birthrate).toInt - (_population * _deathrate).toInt)
+    private def grow(t: Int): Long =
+      if (t > 0) (_population + ((_population * _birthrate).toLong) - ((_population * _deathrate).toLong))
       else grow(t - 1)
 
   }
@@ -130,10 +144,14 @@ object EcoSim {
     GlobalVars.getSpecies(name)
   }
 
-  implicit def eventString(name: String): DeterministicEvent = {
-    GlobalVars.getEvent(name)
+  implicit def eventString(name: String):Event = {
+    var e = GlobalVars.getEvent(name)
+    e match { 
+      case e: DeterministicEvent => GlobalVars.getDeterministicEvent(name)
+      case e: RandomEvent => GlobalVars.getRandomEvent(name)
+    }
   }
-
+  
   // Need to think about how to structure these event defs within the code properly
   // I Just took a shortcut for now, but we want these to be
   // linked to a particular event
@@ -145,20 +163,44 @@ object EcoSim {
   //    GlobalVars.getSpecies(name).growat(gr)
   //  }
 
-  class DeterministicEvent {
-
+  abstract class Event {
+    
     var _name: String = null
     var _time: Int = 0
-
+    
     // list of commands for this event
-    var commands = Map[String, List[Any]]()
-
     var _statements: () => Unit = _
+    
+    def called(n: String): Event
+    
+    def show() {
+      println(_name + " occurs at " + _time)
+    }
+    
+    def runAll() {
+      //execute event if it's time
+      if (_time == GlobalVars.simulation_Time) {
+        println("************** "+ _name + " occurred **************")
+        execute()
+      }
+    }
+
+    def execute() {
+      _statements.apply()
+    }
+    
+    def define(statements: Function0[Unit]) = {
+      _statements = statements
+    }
+    
+  }
+  
+  class DeterministicEvent extends Event {
 
     // Setter for event name
     def called(n: String) = {
       _name = n
-      GlobalVars.addEvent(this)
+      GlobalVars.addDeterministicEvent(this)
       this
     }
 
@@ -166,74 +208,54 @@ object EcoSim {
       _time = t
       this
     }
-
-    def show() {
-      println(_name + " occurs at " + _time)
-    }
-
-    def runAll() {
-      //execute event if it's time
-      if (_time == GlobalVars.simulation_Time) {
-        println("************** "+ _name + " occurred **************")
-        execute()
-      }
-
-      // Add the rest later
-      commands.keys.foreach((cm) =>
-        if (cm.equals("PopUpdate")) {
-          internalPopUpdate(commands(cm))
-        })
-    }
-
-    def execute() {
-      _statements.apply()
-    }
-
-    def define(statements: Function0[Unit]) = {
-      _statements = statements
-    }
-
-    // Here temporarily until we realize better structure
-    // Add to commands list
-    def populationUpdate(name: String, pop: Int) {
-      commands += ("PopUpdate" -> List(name, pop))
-    }
-
-    // Actual execution method
-    def internalPopUpdate(l: List[Any]) {
-      if (GlobalVars.simulation_Time == _time) {
-        var tempName = l(0).toString()
-        var tempPop = l(1).toString().toInt
-        GlobalVars.getSpecies(tempName).population(tempPop)
-      }
-    }
-
-    def birthRateUpdate(name: String, br: Double) {
-      if (GlobalVars.simulation_Time == _time)
-        GlobalVars.getSpecies(name).birthrate(br)
+  }
+  
+  class RandomEvent extends Event {
+    var _probability: Double = 0.0
+    
+    def getProbability(): Double = {
+      _probability
     }
     
-    def deathRateUpdate(name: String, dr: Double) {
-      if (GlobalVars.simulation_Time == _time)
-        GlobalVars.getSpecies(name).deathrate(dr)
+    def withProbability(p: Double): RandomEvent = {
+      _probability = p
+      this
     }
-
+    
+    // Setter for event name
+    def called(n: String) = {
+      _name = n
+      GlobalVars.addRandomEvent(this)
+      this
+    }    
+    
   }
 
   // Object of Global Variables for program users to interact with
   object GlobalVars {
 
-    var simulation_Time: Int = 0;
-
+    var simulation_Time: Int = 0
+    var end_of_world: Int = 0
+    
     var species = Map[String, Species]()
-    var events = Map[String, DeterministicEvent]()
-
+    var events = Map[String, Event]()
+    
+    var deterministicEvents = Map[String, DeterministicEvent]()
+    var randomEvents = Map[String, RandomEvent]()
+    
     def addSpecies(s: Species) {
       species += (s._name -> s)
     }
 
-    def addEvent(e: DeterministicEvent) {
+    def addDeterministicEvent(e: DeterministicEvent) {
+      deterministicEvents += (e._name -> e)
       events += (e._name -> e)
+    }
+    
+    def addRandomEvent(e: RandomEvent) {
+      randomEvents += (e._name -> e)
+      events += (e._name -> e)
+      println(randomEvents)
     }
 
     def getSpecies(name: String): Species = {
@@ -241,8 +263,18 @@ object EcoSim {
       else null
     }
 
-    def getEvent(name: String): DeterministicEvent = {
-      if (events.contains(name)) events(name)
+    def getDeterministicEvent(name: String): DeterministicEvent = {
+      if (deterministicEvents.contains(name)) deterministicEvents(name)
+      else null
+    }
+    
+    def getRandomEvent(name: String): RandomEvent = {
+      if (randomEvents.contains(name)) randomEvents(name)
+      else null
+    }
+    
+    def getEvent(n: String): Event = {
+      if (events.contains(n)) events(n)
       else null
     }
 
@@ -271,7 +303,12 @@ object EcoSim {
     "Tornado" define (() => {
       "Frog" population 0
       "Fly" population 0
+      "Frog" birthrate 1
       new Species called "Jans" of 1000 birthrate 2 deathrate 0.5 startingat 2
+    })
+    
+    new RandomEvent called "Tornadoess" withProbability .5 define (() => { 
+       println("ahhh")
     })
     
     /*"anotherone" define new Gilad({
@@ -294,6 +331,22 @@ object EcoSim {
 
     showEcosystem()
     simulate(3)
+    showEcosystem()
+
+    
+    if(("Jans" population) <  ("Fly" population)){
+      "Frog" population 5000
+    }
+    else{
+      "Frog" population 6000
+    }
+    
+    while(("Jans" population) > 0){
+      //Kill one Jan
+      var newPop = ("Jans" population)-1
+      "Jans" population newPop
+    }
+    
     showEcosystem()
   }
 
