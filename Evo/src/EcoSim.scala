@@ -123,6 +123,8 @@ object EcoSim {
     var _deathrate: Double = 0.0
     var _carryingcapacity: Long = Long.MaxValue
     var _starttime: Int = 0
+    
+    var prey = Map[String, Int]()
 
     // Setter for species name
     def called(n: String) = {
@@ -133,17 +135,14 @@ object EcoSim {
 
     // Setter for species population
     def of(i: Int) = {
-      if (i > _carryingcapacity)
-      {
+      if (i > _carryingcapacity) {
         _population = _carryingcapacity
       }
-      else
-      {
+      else {
        _population = i
       }
       this
     }
-    
     
     // Setter for species growth rate
     def deathrate(x: Double) = {
@@ -177,6 +176,12 @@ object EcoSim {
       println("Death rate: " + _deathrate)
       println("Start time: " + _starttime)
       println("Carrying Capacity: " + _carryingcapacity)
+      if (!prey.isEmpty)
+      {
+        print("One "+ _name + " consumes ")
+        prey.keys.foreach((p) => print(p + ": " + prey(p) + ", "))
+        println()
+      }
     }
 
     // print name and population
@@ -220,6 +225,26 @@ object EcoSim {
       if (t > 0) ((_population * t).toLong)
       else grow(t - 1)
 
+    
+    def setAsPrey(s: String, consumption: Int) {
+        if (!speciesExists(s)) {
+           println(s + " is extinct *****")
+        }
+        else {
+           prey += (s -> consumption)
+        }
+    }
+    
+    def setAsPredator(s: String, consumption: Int) {
+        if (!speciesExists(s)) {
+           println(s + " is extinct *****")
+        }
+        else {
+           GlobalVars.species(s).prey += (_name -> consumption);
+        }
+    }
+      
+      
   }
 
   implicit def speciesString(name: String): Species = {
@@ -234,16 +259,6 @@ object EcoSim {
     }
   }
   
-  // Need to think about how to structure these event defs within the code properly
-  // I Just took a shortcut for now, but we want these to be
-  // linked to a particular event
-  //  def populationUpdate(name: String, pop: Int) {
-  //    GlobalVars.getSpecies(name).population(pop)
-  //  }
-  //    
-  //  def growthRateUpdate(name: String, gr: Double) {
-  //    GlobalVars.getSpecies(name).growat(gr)
-  //  }
 
   abstract class Event {
     
@@ -374,6 +389,11 @@ object EcoSim {
     
     new Species called "Frog" of 100 birthrate 1 deathrate 0.5 startingat 0 carryingcapacity 5000
     new Species called "Fly" of 1000 birthrate 1 deathrate 0.5 startingat 0
+    new Species called "Cricket" of 1000 birthrate 1 deathrate 0.5 startingat 0
+    
+    "Frog" setAsPrey("Fly", 10)
+    "Frog" setAsPrey("Cricket", 10)
+    
     new DeterministicEvent called "Tornado" occursAtTime 1
     "Tornado" define (() => {
       "Frog" population 10
@@ -394,8 +414,6 @@ object EcoSim {
 
     showEcosystem()
     simulate(7)
-    println("2ND SIMULATE")
-    simulate(11)
     
     if(("Jans" population) <  ("Fly" population)){
       "Frog" population 5000
