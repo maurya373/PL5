@@ -4,26 +4,28 @@ object EcoSim {
 
   var rand = scala.util.Random
 
+  
+  // ******************** List of Defs Users can call ********************
+  
   // probably want to switch to a double eventually
   def simulate(time: Int) = {
-    //do time-1 because loop is inclusive    
+    //do time-1 because loop is inclusive  
     for (a <- 0 to time - 1) {
       
       // all simulation code
       println("Time Step " + (GlobalVars.simulation_Time + 1) + " Data");
-      println(" _______________________ ");
+      println("-----------");
       
       GlobalVars.deterministicEvents.keys.foreach((ev) =>
         if (GlobalVars.deterministicEvents.contains(ev)) {
-          ev.runAll()
+          GlobalVars.deterministicEvents(ev).runAll()
         })
         
       GlobalVars.randomEvents.keys.foreach((ev) => {
         if (GlobalVars.randomEvents.contains(ev)) {
           val r = rand.nextDouble()
-          val evRandom: RandomEvent = ev.asInstanceOf[RandomEvent]
-          if (evRandom.getProbability() < r) {
-            ev.runAll()
+          if (r < GlobalVars.randomEvents(ev).getProbability()) {
+            GlobalVars.randomEvents(ev).runAll()
           }
         }
       })
@@ -47,14 +49,27 @@ object EcoSim {
   //print state of the entire ecosystem, i.e. all species
   def showEcosystem() = {
     println("State at beginning of time step: " + GlobalVars.simulation_Time)
-    println()
+    println("-------------------------------------")
     GlobalVars.species.keys.foreach((sp) =>
         if (GlobalVars.species.contains(sp)) {
           sp.showAll()
-          println("-------------------------------------")
+          println("--------------------------")
         })
     println()
   }
+  
+  def updatePopulations(i: Int) {
+      GlobalVars.species.keys.foreach((sp) =>
+        GlobalVars.species(sp).update(i))
+  }
+  
+  def updatePopulations(d: Double) {
+      GlobalVars.species.keys.foreach((sp) =>
+        GlobalVars.species(sp).update(d))
+  }
+  
+  
+  // *************************** Internal Code ******************************
 
   //lets have a way for global events to impact everything
   //like bad weather kills an entire species 
@@ -132,10 +147,16 @@ object EcoSim {
 
     // Updates the population based on the growth
     def update(t: Int) = population(grow(t))
+    
+    def update(t: Double) = population(grow(t))
 
     // Grows the population by growth rate for duration time t  
     private def grow(t: Int): Long =
       if (t > 0) (_population + ((_population * _birthrate).toLong) - ((_population * _deathrate).toLong))
+      else grow(t - 1)
+      
+    private def grow(t: Double): Long =
+      if (t > 0) ((_population * t).toLong)
       else grow(t - 1)
 
   }
@@ -177,13 +198,6 @@ object EcoSim {
       println(_name + " occurs at " + _time)
     }
     
-    def runAll() {
-      //execute event if it's time
-      if (_time == GlobalVars.simulation_Time) {
-        println("************** "+ _name + " occurred **************")
-        execute()
-      }
-    }
 
     def execute() {
       _statements.apply()
@@ -208,6 +222,13 @@ object EcoSim {
       _time = t
       this
     }
+    
+    def runAll() {
+      if (_time == GlobalVars.simulation_Time) {
+        println("************** "+ _name + " occurred **************")
+        execute()
+      }
+    }
   }
   
   class RandomEvent extends Event {
@@ -220,6 +241,11 @@ object EcoSim {
     def withProbability(p: Double): RandomEvent = {
       _probability = p
       this
+    }
+    
+    def runAll() {
+      println("************** "+ _name + " occurred **************")
+      execute()
     }
     
     // Setter for event name
@@ -255,7 +281,6 @@ object EcoSim {
     def addRandomEvent(e: RandomEvent) {
       randomEvents += (e._name -> e)
       events += (e._name -> e)
-      println(randomEvents)
     }
 
     def getSpecies(name: String): Species = {
@@ -301,14 +326,14 @@ object EcoSim {
     //"anotherone".define { () => ??? }
     new DeterministicEvent called "Tornado" occursAtTime 1
     "Tornado" define (() => {
-      "Frog" population 0
-      "Fly" population 0
+      "Frog" population 10
+      "Fly" population 10
       "Frog" birthrate 1
       new Species called "Jans" of 1000 birthrate 2 deathrate 0.5 startingat 2
     })
     
-    new RandomEvent called "Tornadoess" withProbability .5 define (() => { 
-       println("ahhh")
+    new RandomEvent called "Earthquake" withProbability .07 define (() => {
+      updatePopulations(0.2)
     })
     
     /*"anotherone" define new Gilad({
@@ -330,8 +355,7 @@ object EcoSim {
     //        populationUpdate ("Frog", 373)
 
     showEcosystem()
-    simulate(3)
-    showEcosystem()
+    simulate(4)
 
     
     if(("Jans" population) <  ("Fly" population)){
