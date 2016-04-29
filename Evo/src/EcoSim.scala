@@ -34,9 +34,8 @@ object EcoSim {
         if (GlobalVars.species.contains(sp)) {
           if (sp._starttime <= GlobalVars.simulation_Time){
             sp.update(1) //update the population by one time unit
-            
+            sp.showNumbers()
           }
-          sp.showNumbers()
         })
 
         
@@ -58,15 +57,55 @@ object EcoSim {
     println()
   }
   
+  //print out all random events and deterministic events
+  def showAllEvents()
+  {
+    showRandomEvents()
+    showDeterministicEvents()
+  }
+  
+  //returns true if a species exists
+  def speciesExists(name: String) = {
+  {
+    GlobalVars.species.contains(name)
+  }}
+  
+  //prints out names and probs of all random events
+  def showRandomEvents() = {
+    println("The random events are as follows:")
+    println("----------------------------------")
+    GlobalVars.randomEvents.keys.foreach((re) => 
+      if (GlobalVars.randomEvents.contains(re)) {
+        println(GlobalVars.randomEvents(re)._name + ": Probability of Occurrence is " + GlobalVars.randomEvents(re)._probability)
+      }
+      )
+    println("----------------------------------")
+    println()
+  }
+  
+    //prints out names of deterministic events
+    def showDeterministicEvents() = {
+    println("The deterministic events are as follows:")
+    println("----------------------------------")
+    GlobalVars.deterministicEvents.keys.foreach((re) => 
+      if (GlobalVars.deterministicEvents.contains(re)) {
+        println(GlobalVars.deterministicEvents(re)._name)
+      }
+      )
+    println("----------------------------------")
+    println()
+  }
+  
   def updatePopulations(i: Int) {
       GlobalVars.species.keys.foreach((sp) =>
         GlobalVars.species(sp).update(i))
   }
   
-  def updatePopulations(d: Double) {
+  def multiplyPopulationByRate(d: Double) {
       GlobalVars.species.keys.foreach((sp) =>
         GlobalVars.species(sp).update(d))
   }
+  
   
   
   // *************************** Internal Code ******************************
@@ -82,6 +121,7 @@ object EcoSim {
     var _population: Long = 0
     var _birthrate: Double = 0.0
     var _deathrate: Double = 0.0
+    var _carryingcapacity: Long = Long.MaxValue
     var _starttime: Int = 0
 
     // Setter for species name
@@ -93,7 +133,14 @@ object EcoSim {
 
     // Setter for species population
     def of(i: Int) = {
-      _population = i
+      if (i > _carryingcapacity)
+      {
+        _population = _carryingcapacity
+      }
+      else
+      {
+       _population = i
+      }
       this
     }
     
@@ -101,6 +148,12 @@ object EcoSim {
     // Setter for species growth rate
     def deathrate(x: Double) = {
       _deathrate = x
+      this
+    }
+    
+    //Setter for species carrying capacity
+    def carryingcapacity(x: Long) = {
+      _carryingcapacity = x
       this
     }
 
@@ -123,6 +176,7 @@ object EcoSim {
       println("Birth rate: " + _birthrate)
       println("Death rate: " + _deathrate)
       println("Start time: " + _starttime)
+      println("Carrying Capacity: " + _carryingcapacity)
     }
 
     // print name and population
@@ -132,8 +186,15 @@ object EcoSim {
 
     // Setter for species population
     def population(x: Long) {
-//      println("setting " + _name + " population to " + x)
-      _population = x
+      //println("setting " + _name + " population to " + x)
+      if (x > _carryingcapacity)
+      {
+        _population = _carryingcapacity
+      }
+      else
+      {
+       _population = x 
+      }
     }
     
     def population() : Long = {
@@ -311,19 +372,8 @@ object EcoSim {
   
   def main(args: Array[String]) = {
     
-    new Species called "Frog" of 100 birthrate 1 deathrate 0.5 startingat 0
+    new Species called "Frog" of 100 birthrate 1 deathrate 0.5 startingat 0 carryingcapacity 5000
     new Species called "Fly" of 1000 birthrate 1 deathrate 0.5 startingat 0
-    
-    /*new Event called "e" occursAtTime 2
-    "e" define {
-      () => "Frog" population 5000
-      () => "Fly" population 3340
-    }*/
-
-    // population update is reflected in year 3 (after year 2)
-    //new Event called "Earthquake" occursAtTime 2 populationUpdate ("Frog", 373)
-    
-    //"anotherone".define { () => ??? }
     new DeterministicEvent called "Tornado" occursAtTime 1
     "Tornado" define (() => {
       "Frog" population 10
@@ -332,31 +382,20 @@ object EcoSim {
       new Species called "Jans" of 1000 birthrate 2 deathrate 0.5 startingat 2
     })
     
-    new RandomEvent called "Earthquake" withProbability .07 define (() => {
-      updatePopulations(0.2)
+    new RandomEvent called "Earthquake" withProbability .1 define (() => {
+      multiplyPopulationByRate(0.2)
+      if (speciesExists("Jans")) {
+        "Jans" population 1000000
+      }
+      "Fly" population 5000000
+      new Species called "Tyler" of 1 birthrate 1 deathrate 0 startingat 10
     })
     
-    /*"anotherone" define new Gilad({
-      "Frog" population 5000
-      "Fly" population 3340
-    })*/
-    
-    /*(() => {
-      "Frog" population 5000
-      "Fly" population 3340
-    })*/
-
-    //        for i 1 20 loop
-    //          print "Frog" showAll
-    //        endloop
-    //        if "Frog" population < "Fly" population startif
-    //          populationUpdate("Frog", 0)
-    //        endif
-    //        populationUpdate ("Frog", 373)
 
     showEcosystem()
-    simulate(4)
-
+    simulate(7)
+    println("2ND SIMULATE")
+    simulate(11)
     
     if(("Jans" population) <  ("Fly" population)){
       "Frog" population 5000
@@ -366,7 +405,6 @@ object EcoSim {
     }
     
     while(("Jans" population) > 0){
-      //Kill one Jan
       var newPop = ("Jans" population)-1
       "Jans" population newPop
     }
