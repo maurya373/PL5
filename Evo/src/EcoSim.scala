@@ -1,4 +1,5 @@
 import scala.collection.mutable.Map
+import scala.collection.mutable.ArrayBuffer
 
 object EcoSim {
 
@@ -10,6 +11,7 @@ object EcoSim {
   // probably want to switch to a double eventually
   def simulate(time: Int) = {
     //do time-1 because loop is inclusive  
+    
     for (a <- 0 to time - 1) {
       
       // all simulation code
@@ -43,7 +45,9 @@ object EcoSim {
       println();
 
     }
+    
   }
+  
   
   //print state of the entire ecosystem, i.e. all species
   def showEcosystem() = {
@@ -64,11 +68,13 @@ object EcoSim {
     showDeterministicEvents()
   }
   
+  
   //returns true if a species exists
   def speciesExists(name: String) = {
   {
     GlobalVars.species.contains(name)
   }}
+  
   
   //prints out names and probs of all random events
   def showRandomEvents() = {
@@ -83,7 +89,8 @@ object EcoSim {
     println()
   }
   
-    //prints out names of deterministic events
+    
+  //prints out names of deterministic events
     def showDeterministicEvents() = {
     println("The deterministic events are as follows:")
     println("----------------------------------")
@@ -123,6 +130,9 @@ object EcoSim {
     var _deathrate: Double = 0.0
     var _carryingcapacity: Long = Long.MaxValue
     var _starttime: Int = 0
+    var _traits : ArrayBuffer[Map[String, Double]] = null
+    var _traitReference : Map[String, Int] = null 
+    var _currentTrait : String = null
     
     var prey = Map[String, Int]()
 
@@ -243,9 +253,79 @@ object EcoSim {
            GlobalVars.species(s).prey += (_name -> consumption);
         }
     }
+    
+    
       
-      
+    def addTrait(traitName : String)={
+      if(this._traits == null){
+        //Init traits list and add this map
+        this._currentTrait = traitName
+        this._traitReference = Map[String,Int](traitName -> 0)
+        this._traits = new ArrayBuffer[Map[String, Double]]
+        this
+        //phenotype calls will now add actual phenotypes to the appropriate Map in _traits
+      }
+      else{
+        this._currentTrait = traitName
+        var newIndex = this._traits.size
+        this._traitReference += (traitName -> newIndex)
+        this
+        //phenotype calls will now add actual phenotypes to the appropriate Map in _traits
+      }
+    }
+    
+    def phenotype(pheno : String, occurence : Double)={
+      //Get index of current trait
+      var currentIndex = this._traitReference.apply(this._currentTrait)
+      //If there is a map at this index, add to it
+      if(this._traits.isDefinedAt(currentIndex)){
+        //May need to create map?
+        var tempMap = this._traits.apply(currentIndex)
+        tempMap.+=(pheno -> occurence)
+        this._traits.update(currentIndex, tempMap)
+        this
+        //Okay, added phenotype.
+      }
+      else{
+        //CurrentIndex does not exist so need to create map.
+        var newMap = Map[String, Double](pheno -> occurence)
+        this._traits.insert(currentIndex, newMap)
+        this
+        //Added phenotype.
+      }
+    }
+    
+    def showTrait(traitName: String){
+      var currentIndex = this._traitReference.apply(traitName)
+      println("Trait: "+ traitName)
+      var currentMap = this._traits.apply(currentIndex)
+      currentMap.keys.foreach{ i =>  
+        print( "Phenotype = " + i )
+        println(" Occurence = " + currentMap(i) )}
+    }
+    
+    
   }
+  
+  def testTraits(currentSpecies : Species){
+      var currentTrait : String = null
+      var accumulator : Double = 0.0
+      var phenoMap : Map[String, Double] = null
+      if(currentSpecies._traitReference != null){
+        currentSpecies._traitReference.keys.foreach{ i =>
+          currentTrait = i
+          accumulator = 0.0
+          var phenoMap = currentSpecies._traits(currentSpecies._traitReference(i))
+          phenoMap.keys.foreach{ j =>
+            accumulator += phenoMap(j)
+          }
+          if(accumulator != 1.0){
+            println("\nWARNING\n"+"Occurences of trait \""+currentTrait+"\" do not sum to 1.") 
+          }
+        }
+      }
+      
+    }
 
   implicit def speciesString(name: String): Species = {
     GlobalVars.getSpecies(name)
@@ -411,15 +491,40 @@ object EcoSim {
       new Species called "Tyler" of 1 birthrate 1 deathrate 0 startingat 10
     })
     
-
+    
+    
+    
+    
     showEcosystem()
     simulate(7)
     
+    
+    println("\n\n\n\n-----------------\nTESTING TRAITS\n------------\n\n\n")
+    
+    "Jans" addTrait "Eye Color" phenotype("Blue",0.5) phenotype("Brown", 0.5)
+    "Jans" addTrait "Height" phenotype("Short", 0.01) phenotype("Tall", 0.99)
+    "Jans" addTrait "Hair" phenotype("Ponytail", 0.5)
+    
+    "Jans" showTrait "Eye Color"
+    "Jans" showTrait "Height"
+    
+    GlobalVars.species.keys.foreach{ i =>
+      testTraits(GlobalVars.species(i))
+    }
+    
+    
+    
+    println("\n\n\n\n-----------------\nTESTING TRAITS\n------------\n\n\n")
+    println("\n\nSimulation over\n\n")
+    
+    
     if(("Jans" population) <  ("Fly" population)){
       "Frog" population 5000
+      println("Jans less than Fly")
     }
     else{
       "Frog" population 6000
+      println("Jans NOT less than Fly")
     }
     
     while(("Jans" population) > 0){
@@ -428,6 +533,8 @@ object EcoSim {
     }
     
     showEcosystem()
+    
+    
   }
 
 }
