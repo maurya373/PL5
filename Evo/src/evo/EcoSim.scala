@@ -207,7 +207,7 @@ object EcoSim {
     
     "Jans" addTrait "Eye Color" phenotype("Blue",0.5) phenotype("Brown", 0.5)
     "Jans" addTrait "Height" phenotype("Short", 0.01) phenotype("Tall", 0.99)
-    "Jans" addTrait "Hair" phenotype("Ponytail", 0.5)
+    "Jans" addTrait "Hair" phenotype("Ponytail", 0.5) phenotype("Bald", 0.2)
     
     "Jans" showTrait "Eye Color"
     "Jans" showTrait "Height"

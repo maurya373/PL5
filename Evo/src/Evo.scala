@@ -153,15 +153,15 @@ object Evo {
     EcoSystem.species.keys.foreach((sp) =>
 
       // loop through prey of each species
-      sp.prey.keys.foreach((pr) => {
+      sp.preyEvent.keys.foreach((pr) => {
 
+        // if species is extinct run generic event
         if (EcoSystem.species(pr)._population == 0) {
-          println(pr + " is extinct ******")
+          
+          EcoSystem.species(sp).preyEvent(pr)._2.execute();
         } else {
-          println(pr + " is not extinct")
-          var deathNum = sp.prey(pr) * EcoSystem.species(sp)._population
-
-          //println(sp._population + " " + sp + " ate " + deathNum + " " + pr)
+          
+          var deathNum = sp.preyEvent(pr)._1 * EcoSystem.species(sp)._population
 
           if (updatedSpecies.contains(pr)) {
             var v = Math.max(updatedSpecies(pr) - deathNum, 0)
@@ -198,8 +198,7 @@ object Evo {
     var _currentTrait : String = null
     
     //prey of the species
-    var prey = Map[Symbol, Long]()
-    var preyEvent = Map[Symbol, (Long, String)]()
+    var preyEvent = Map[Symbol, (Long, Symbol)]()
 
     
     //SETTERS
@@ -268,17 +267,17 @@ object Evo {
       println("Death rate: " + _deathrate)
       println("Start time: " + _time)
       println("Carrying Capacity: " + _carryingcapacity)
-      if (!prey.isEmpty)
+      if (!preyEvent.isEmpty)
       {
         print("One "+ _name + " consumes ")
         var count: Int = 0
-        prey.keys.foreach((p) =>
-            if (count == prey.size-1) {
-              print(p + ": " + prey(p))
+        preyEvent.keys.foreach((p) =>
+            if (count == preyEvent.size-1) {
+              print(p + ": " + preyEvent(p)._1)
               count = count + 1
             }
             else {
-              print(p + ": " + prey(p) + ", ")
+              print(p + ": " + preyEvent(p)._1 + ", ")
               count = count + 1
             })
         println()
@@ -320,35 +319,44 @@ object Evo {
     def setAsPrey(s: Symbol, consumption: Long) {
         
         if (!EcoSystem.genericEvents.contains(EcoSystem.DoNothing)) {
-          
           new GenericEvent called EcoSystem.DoNothing definedAs (new FUNCTION {
             new PRINT("Nothing should happen")
           })
         }
         
+        setAsPrey(s, consumption, EcoSystem.DoNothing)
 //        if (!speciesExists(s)) {
 //           println(s + " is extinct *****")
 //        }
-        else {
-           prey += (s -> consumption)
-        }
+//        else {
+//           prey += (s -> consumption)
+//        }
     }
     
-    def setAsPrey(s: Symbol, consumption: Long, ev: String) {
+    def setAsPrey(s: Symbol, consumption: Long, ev: Symbol) {
         if (!EcoSystem.species.contains(s)) {
-           println(s + " is extinct *****")
+           println(s + " does not exist *****")
         }
         else {
-           prey += (s -> consumption)
+           preyEvent += (s -> (consumption, ev))
         }
     }
     
     def setAsPredator(s: Symbol, consumption: Long) {
         if (!EcoSystem.species.contains(s)) {
-           println(s + " is extinct *****")
+           println(s + " does not exist *****")
         }
         else {
-           EcoSystem.species(s).prey += (_name -> consumption);
+           EcoSystem.species(s).setAsPrey(_name, consumption)
+        }
+    }
+    
+    def setAsPredator(s: Symbol, consumption: Long, ev: Symbol) {
+        if (!EcoSystem.species.contains(s)) {
+           println(s + " does not exist *****")
+        }
+        else {
+           EcoSystem.species(s).setAsPrey(_name, consumption, ev)
         }
     }
     
@@ -523,6 +531,7 @@ object Evo {
     e match {
       case e: DeterministicEvent => EcoSystem.getDeterministicEvent(name)
       case e: RandomEvent        => EcoSystem.getRandomEvent(name)
+      case e: GenericEvent       => EcoSystem.getGenericEvent(name)
     }
   }
 
@@ -638,8 +647,13 @@ object Evo {
     new Species called 'Fly of 1000 birthrate 0 deathrate 0 at 0
     new Species called 'Cricket of 500 birthrate 0 deathrate 0 at 0
 
+    new GenericEvent called 'Fraij definedAs (new FUNCTION {
+      new PRINT("FRAIJIFY")
+    })
+    
+    
     //set food web relations between species 
-    'Frog setAsPrey ('Fly, 5)
+    'Frog setAsPrey ('Fly, 5, 'Fraij)
     'Frog setAsPrey ('Cricket, 2)
 
     //example of defining deterministic event
