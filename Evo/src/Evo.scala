@@ -17,15 +17,23 @@ object Evo {
     var events = Map[Symbol, EventClass]()
     //all deterministic events
     var deterministicEvents = Map[Symbol, DeterministicEvent]()
+    //all random events
+    var randomEvents = Map[Symbol, RandomEvent]()
 
     //add a new species to the ecosystem
     def addSpecies(s: Species) {
       species += (s._name -> s)
     }
-    
+
     //add a new deterministic event
     def addDeterministicEvent(e: DeterministicEvent) {
       deterministicEvents += (e._name -> e)
+      events += (e._name -> e)
+    }
+
+    //add a new random event
+    def addRandomEvent(e: RandomEvent) {
+      randomEvents += (e._name -> e)
       events += (e._name -> e)
     }
 
@@ -40,13 +48,25 @@ object Evo {
       if (deterministicEvents.contains(name)) deterministicEvents(name)
       else null
     }
-    
+
+    //get a random event
+    def getRandomEvent(name: Symbol): RandomEvent = {
+      if (randomEvents.contains(name)) randomEvents(name)
+      else null
+    }
+
     //get a species from a name
     def getSpecies(name: Symbol): Species = {
       if (species.contains(name)) species(name)
       else null
     }
-    
+
+    //util function that returns random number 0.0 to 1.0 inclusive
+    def getRandomValue() = {
+      var rand = scala.util.Random
+      rand.nextDouble()
+    }
+
     //show the status of the ecosystem
     def showEcosystem() = {
       println("State at beginning of time step: " + worldTime)
@@ -61,6 +81,7 @@ object Evo {
   }
 
   /********* Classes ***********/
+  //SPECIES
   class Species {
     //properties of species
     var _name: Symbol = null
@@ -110,14 +131,14 @@ object Evo {
     def time(x: Int) {
       _time = x
     }
-    
+
     //GETTERS
     def getName() = _name
     def getPopulation() = _population
     def getBirthrate() = _birthrate
     def getDeathrate() = _deathrate
     def getTime() = _time
-      
+
     //METHODS
     //show all the data for the a particular species
     def showAll() {
@@ -142,7 +163,8 @@ object Evo {
       else grow(t - 1)
 
   }
-  
+
+  //EVENTS:
   //super class of both deterministic and random events
   abstract class EventClass {
     //name of the event
@@ -192,17 +214,56 @@ object Evo {
       }
     }
   }
-  
+
+  class RandomEvent extends EventClass {
+    //probability of event happening at every time tick
+    var _probability: Double = 0.0
+
+    //get the _probability property
+    def getProbability() = _probability
+
+    //set the _probability property
+    def withProbability(p: Double): RandomEvent = {
+      _probability = p
+      this
+    }
+
+    //set the _name property
+    def called(n: Symbol) = {
+      _name = n
+      EcoSystem.addRandomEvent(this)
+      this
+    }
+
+    //implement execute function from EventClass
+    def execute() {
+      var function = EcoSystem.functions(_name)
+      
+      function.get
+    }
+
+    //implement at function from EventClass that has no effect
+    def at(t: Int) = {
+      this
+    }
+
+    //add the function to the global map of functions (using call-by-name)
+    def definedAs(function: => FUNCTION) {
+      EcoSystem.functions += (_name -> new functionWrapper(function))
+    }
+  }
+
   /********* Implicits ***********/
   //try to convert any Symbol to an event type
   implicit def eventString(name: Symbol): EventClass = {
     var e = EcoSystem.getEvent(name)
     e match {
       case e: DeterministicEvent => EcoSystem.getDeterministicEvent(name)
-      //case e: RandomEvent        => EcoSystem.getRandomEvent(name)
+      case e: RandomEvent        => EcoSystem.getRandomEvent(name)
     }
   }
-  
+
+  //try to convert any Symbol into a Species
   implicit def speciesString(name: Symbol): Species = {
     EcoSystem.getSpecies(name)
   }
@@ -219,7 +280,17 @@ object Evo {
         if (EcoSystem.deterministicEvents.contains(ev)) {
           ev.execute()
         })
-      
+
+      EcoSystem.randomEvents.keys.foreach((ev) => {
+        if (EcoSystem.randomEvents.contains(ev)) {
+          val p = EcoSystem.randomEvents(ev).getProbability()
+          val r = EcoSystem.getRandomValue()
+          if (r <= p) {
+            ev.execute()
+          }
+        }
+      })
+
       //show and update every species in the ecosystem
       EcoSystem.species.keys.foreach((sp) =>
         if (EcoSystem.species.contains(sp)) {
@@ -275,7 +346,7 @@ object Evo {
   class PRINT(str: String) extends Expression {
     println(str)
   }
-  
+
   //Evo - update species population
   class UPDATE_POPULATION(species: Symbol, p: Long) extends Expression {
     species population p
@@ -284,16 +355,19 @@ object Evo {
   /********* tests ***********/
   def main(args: Array[String]) = {
     new Species called 'Pig of 1000 birthrate .4 deathrate .3
-    
+
     new DeterministicEvent called 'Tornado at 4 definedAs (new FUNCTION {
       new PRINT("12")
       new IF(('Pig getPopulation) < 2, (
         new PRINT("FRAIJ")))
       new IF(1 < 2, (
-        new UPDATE_POPULATION('Pig, 696969)  
-      ))
+        new UPDATE_POPULATION('Pig, 696969)))
       new STEP(3, (
         new PRINT("FARES")))
+    })
+
+    new RandomEvent called 'Wipeout withProbability .5 definedAs (new FUNCTION {
+       new PRINT("WIPEOUT!!")
     })
 
     simulate(5)
