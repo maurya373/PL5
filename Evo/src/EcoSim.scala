@@ -38,11 +38,57 @@ object EcoSim {
           }
         })
 
+      predation()
         
       GlobalVars.simulation_Time += 1
       println();
 
     }
+  }
+  
+  def predation() {
+    
+    var updatedSpecies = Map[String, Long]()
+    // loop through all species
+    GlobalVars.species.keys.foreach((sp) => 
+    
+      // loop through prey of each species
+       sp.prey.keys.foreach((pr) => {
+         
+         if (GlobalVars.species(pr)._population == 0)
+         {
+           println(pr + " is extinct ******")
+         }
+         else
+         {
+           println(pr + " is not extinct")
+           var deathNum = sp.prey(pr) * GlobalVars.species(sp)._population
+         
+           //println(sp._population + " " + sp + " ate " + deathNum + " " + pr)
+           
+           if (updatedSpecies.contains(pr)) {             
+             var v = Math.max(updatedSpecies(pr) - deathNum, 0)
+             updatedSpecies.put(pr, v)
+           }
+           else {
+             var v = Math.max(GlobalVars.species(pr)._population-deathNum, 0)
+             updatedSpecies.put(pr, v)
+           }   
+         }
+         
+         
+       }
+       )
+    ) 
+    
+    GlobalVars.species.keys.foreach((sp) => 
+       
+       if (updatedSpecies.contains(sp)) {  
+          sp._population = updatedSpecies(sp)   
+       }
+    )
+    
+    
   }
   
   //print state of the entire ecosystem, i.e. all species
@@ -124,7 +170,7 @@ object EcoSim {
     var _carryingcapacity: Long = Long.MaxValue
     var _starttime: Int = 0
     
-    var prey = Map[String, Int]()
+    var prey = Map[String, Long]()
 
     // Setter for species name
     def called(n: String) = {
@@ -179,7 +225,16 @@ object EcoSim {
       if (!prey.isEmpty)
       {
         print("One "+ _name + " consumes ")
-        prey.keys.foreach((p) => print(p + ": " + prey(p) + ", "))
+        var count: Int = 0
+        prey.keys.foreach((p) =>
+            if (count == prey.size-1) {
+              print(p + ": " + prey(p))
+              count = count + 1
+            }
+            else {
+              print(p + ": " + prey(p) + ", ")
+              count = count + 1
+            })
         println()
       }
     }
@@ -226,7 +281,7 @@ object EcoSim {
       else grow(t - 1)
 
     
-    def setAsPrey(s: String, consumption: Int) {
+    def setAsPrey(s: String, consumption: Long) {
         if (!speciesExists(s)) {
            println(s + " is extinct *****")
         }
@@ -235,7 +290,7 @@ object EcoSim {
         }
     }
     
-    def setAsPredator(s: String, consumption: Int) {
+    def setAsPredator(s: String, consumption: Long) {
         if (!speciesExists(s)) {
            println(s + " is extinct *****")
         }
@@ -387,47 +442,31 @@ object EcoSim {
   
   def main(args: Array[String]) = {
     
-    new Species called "Frog" of 100 birthrate 1 deathrate 0.5 startingat 0 carryingcapacity 5000
-    new Species called "Fly" of 1000 birthrate 1 deathrate 0.5 startingat 0
-    new Species called "Cricket" of 1000 birthrate 1 deathrate 0.5 startingat 0
+    new Species called "Frog" of 100 birthrate 0 deathrate 0 startingat 0 carryingcapacity 5000
+    new Species called "Fly" of 1000 birthrate 0 deathrate 0 startingat 0
+    new Species called "Cricket" of 500 birthrate 0 deathrate 0 startingat 0
     
-    "Frog" setAsPrey("Fly", 10)
-    "Frog" setAsPrey("Cricket", 10)
-    
-    new DeterministicEvent called "Tornado" occursAtTime 1
-    "Tornado" define (() => {
-      "Frog" population 10
-      "Fly" population 10
-      "Frog" birthrate 1
-      new Species called "Jans" of 1000 birthrate 2 deathrate 0.5 startingat 2
-    })
-    
-    new RandomEvent called "Earthquake" withProbability .1 define (() => {
-      multiplyPopulationByRate(0.2)
-      if (speciesExists("Jans")) {
-        "Jans" population 1000000
-      }
-      "Fly" population 5000000
-      new Species called "Tyler" of 1 birthrate 1 deathrate 0 startingat 10
-    })
-    
-
-    showEcosystem()
-    simulate(7)
-    
-    if(("Jans" population) <  ("Fly" population)){
-      "Frog" population 5000
-    }
-    else{
-      "Frog" population 6000
-    }
-    
-    while(("Jans" population) > 0){
-      var newPop = ("Jans" population)-1
-      "Jans" population newPop
-    }
+    "Frog" setAsPrey("Fly", 5)
+    "Frog" setAsPrey("Cricket", 2)
     
     showEcosystem()
+    
+    simulate(5)
+    
+    showEcosystem()
+    
   }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
