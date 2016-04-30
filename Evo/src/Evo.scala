@@ -20,6 +20,7 @@ object Evo {
     //all random events
     var randomEvents = Map[Symbol, RandomEvent]()
 
+    //ADD METHODS
     //add a new species to the ecosystem
     def addSpecies(s: Species) {
       species += (s._name -> s)
@@ -37,6 +38,7 @@ object Evo {
       events += (e._name -> e)
     }
 
+    //GET METHODS
     //get an event
     def getEvent(n: Symbol): EventClass = {
       if (events.contains(n)) events(n)
@@ -67,6 +69,53 @@ object Evo {
       rand.nextDouble()
     }
 
+    //UTIL METHODS
+    //returns true if a species exists
+    def speciesExists(name: Symbol) = {
+      species.contains(name)
+    }
+
+    def updatePopulations(i: Int) {
+      species.keys.foreach((sp) =>
+        species(sp).population(i))
+    }
+
+    def multiplyPopulationByRate(d: Double) {
+      species.keys.foreach((sp) =>
+        species(sp).update(d))
+    }
+
+    //SHOW METHODS
+    //print out all random events and deterministic events
+    def showAllEvents() {
+      showRandomEvents()
+      showDeterministicEvents()
+    }
+
+    //prints out names and probs of all random events
+    def showRandomEvents() = {
+      println("The random events are as follows:")
+      println("----------------------------------")
+      randomEvents.keys.foreach((re) =>
+        if (randomEvents.contains(re)) {
+          println(randomEvents(re)._name + ": Probability of Occurrence is " + randomEvents(re)._probability)
+        })
+      println("----------------------------------")
+      println()
+    }
+
+    //prints out names of deterministic events
+    def showDeterministicEvents() = {
+      println("The deterministic events are as follows:")
+      println("----------------------------------")
+      deterministicEvents.keys.foreach((re) =>
+        if (deterministicEvents.contains(re)) {
+          println(deterministicEvents(re)._name)
+        })
+      println("----------------------------------")
+      println()
+    }
+
     //show the status of the ecosystem
     def showEcosystem() = {
       println("State at beginning of time step: " + worldTime)
@@ -89,6 +138,10 @@ object Evo {
     var _population: Long = 0
     var _birthrate: Double = 0.0
     var _deathrate: Double = 0.0
+    var _carryingcapacity: Long = Long.MaxValue
+    
+    //prey of the species
+    var prey = Map[Symbol, Long]()
 
     //SETTERS
     //setter for the _name property
@@ -100,7 +153,14 @@ object Evo {
 
     //setter for the _population property
     def of(p: Long) = {
-      _population = p
+      if (p > _carryingcapacity) { _population = _carryingcapacity }
+      else { _population = p }
+      this
+    }
+    
+    //setter for the _carryingcapacity property
+    def carryingcapacity(cc: Long) = {
+      _carryingcapacity = cc
       this
     }
 
@@ -123,13 +183,13 @@ object Evo {
     }
 
     //another setter for the _population property
-    def population(x: Long) {
-      _population = x
+    def population(p: Long) {
+      of(p)
     }
 
     //another setter for the _time property
-    def time(x: Int) {
-      _time = x
+    def time(t: Int) {
+      at(t)
     }
 
     //GETTERS
@@ -138,6 +198,7 @@ object Evo {
     def getBirthrate() = _birthrate
     def getDeathrate() = _deathrate
     def getTime() = _time
+    def getCarryingCapacity() = _carryingcapacity
 
     //METHODS
     //show all the data for the a particular species
@@ -147,6 +208,22 @@ object Evo {
       println("Birth rate: " + _birthrate)
       println("Death rate: " + _deathrate)
       println("Start time: " + _time)
+      println("Carrying Capacity: " + _carryingcapacity)
+      if (!prey.isEmpty)
+      {
+        print("One "+ _name + " consumes ")
+        var count: Int = 0
+        prey.keys.foreach((p) =>
+            if (count == prey.size-1) {
+              print(p + ": " + prey(p))
+              count = count + 1
+            }
+            else {
+              print(p + ": " + prey(p) + ", ")
+              count = count + 1
+            })
+        println()
+      }
     }
 
     //print name and population
@@ -156,12 +233,30 @@ object Evo {
 
     //updates the population based on the growth
     def update(t: Int) = population(grow(t))
-
-    // Grows the population by growth rate for duration time t  
+    //updates population based on percentage
+    def update(t: Double) = population(grow(t))
+    
+    //grows the population by growth rate for duration time t  
     private def grow(t: Int): Long =
       if (t > 0) (_population + ((_population * _birthrate).toLong) - ((_population * _deathrate).toLong))
       else grow(t - 1)
+    
+    //grows the population based on a percentage
+    private def grow(t: Double): Long =
+      if (t > 0) ((_population * t).toLong)
+      else grow(t - 1)
 
+    //
+    def setAsPrey(s: Symbol, consumption: Long) {
+        if (!EcoSystem.speciesExists(s)) println(s + " is extinct *****")
+        else prey += (s -> consumption)
+    }
+    
+    //
+    def setAsPredator(s: Symbol, consumption: Long) {
+        if (!EcoSystem.speciesExists(s)) println(s + " is extinct *****")
+        else EcoSystem.species(s).prey += (_name -> consumption)
+    }
   }
 
   //EVENTS:
@@ -238,7 +333,7 @@ object Evo {
     //implement execute function from EventClass
     def execute() {
       var function = EcoSystem.functions(_name)
-      
+
       function.get
     }
 
@@ -275,12 +370,13 @@ object Evo {
       println("Time Step " + (EcoSystem.worldTime + 1));
       println(" _______________________ ");
 
-      //run every event
+      //run every deterministic event
       EcoSystem.deterministicEvents.keys.foreach((ev) =>
         if (EcoSystem.deterministicEvents.contains(ev)) {
           ev.execute()
         })
 
+      //run every random event
       EcoSystem.randomEvents.keys.foreach((ev) => {
         if (EcoSystem.randomEvents.contains(ev)) {
           val p = EcoSystem.randomEvents(ev).getProbability()
@@ -296,14 +392,13 @@ object Evo {
         if (EcoSystem.species.contains(sp)) {
           if (sp.getTime() <= EcoSystem.worldTime) {
             sp.update(1) //update the population by one time unit
+            sp.showNumbers() //show the updated population of the species
           }
-          sp.showNumbers()
         })
 
       //increment the time
       EcoSystem.worldTime += 1
-      println()
-      println()
+      println(); println()
     }
   }
 
@@ -351,26 +446,58 @@ object Evo {
   class UPDATE_POPULATION(species: Symbol, p: Long) extends Expression {
     species population p
   }
+  
+  //Evo - updates all populations to a specific number
+  class UPDATE_ALL_POPULATIONS_TO(i: Int) extends Expression {
+    EcoSystem.updatePopulations(i)
+  }
+
+  //Evo - updates all populations by a specific growth percentage
+  class UPDATE_ALL_POPULATIONS_BY(d: Double) extends Expression {
+    EcoSystem.multiplyPopulationByRate(d)
+  }
+
+  //Evo - cleaner way to show the ecosystem
+  def showEcosystem = EcoSystem.showEcosystem()
 
   /********* tests ***********/
   def main(args: Array[String]) = {
+    //example of creating Species
     new Species called 'Pig of 1000 birthrate .4 deathrate .3
+    new Species called 'Frog of 100 birthrate 0 deathrate 0 at 0 carryingcapacity 5000
+    new Species called 'Fly of 1000 birthrate 0 deathrate 0 at 0
+    new Species called 'Cricket of 500 birthrate 0 deathrate 0 at 0
 
+    //set food web relations between species 
+    'Frog setAsPrey('Fly, 5)
+    'Frog setAsPrey('Cricket, 2)
+    
+    //example of defining deterministic event
     new DeterministicEvent called 'Tornado at 4 definedAs (new FUNCTION {
-      new PRINT("12")
-      new IF(('Pig getPopulation) < 2, (
-        new PRINT("FRAIJ")))
+      new PRINT("FRAIJ")
+      new IF('Pig.getPopulation < 2000, (
+        new UPDATE_ALL_POPULATIONS_TO(5000)
+      ))
       new IF(1 < 2, (
-        new UPDATE_POPULATION('Pig, 696969)))
+        new UPDATE_POPULATION('Pig, 696969)
+      ))
+      new IF(('Pig getPopulation) < ('Frog getPopulation), (
+        new UPDATE_ALL_POPULATIONS_BY(.2)
+      ))
       new STEP(3, (
-        new PRINT("FARES")))
+        new PRINT("FARES")
+      ))
     })
 
+    //example of defining random event
     new RandomEvent called 'Wipeout withProbability .5 definedAs (new FUNCTION {
-       new PRINT("WIPEOUT!!")
+      new PRINT("WIPEOUT!!")
     })
-
+    
+    //run the ecosystem - print the states before and after
+    showEcosystem
     simulate(5)
+    showEcosystem
 
     println("---")
   }
