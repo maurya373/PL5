@@ -4,9 +4,6 @@ import scala.collection.mutable.ArrayBuffer
 object EcoSim {
 
   var rand = scala.util.Random
-
-  
-  // ******************** List of Defs Users can call ********************
   
   // probably want to switch to a double eventually
   def simulate(time: Int) = {
@@ -21,6 +18,11 @@ object EcoSim {
       GlobalVars.deterministicEvents.keys.foreach((ev) =>
         if (GlobalVars.deterministicEvents.contains(ev)) {
           GlobalVars.deterministicEvents(ev).runAll()
+        })
+        
+      GlobalVars.genericEvents.keys.foreach((ev) =>
+        if (GlobalVars.genericEvents.contains(ev)) {
+          GlobalVars.genericEvents(ev).runAll()
         })
         
       GlobalVars.randomEvents.keys.foreach((ev) => {
@@ -45,8 +47,7 @@ object EcoSim {
       GlobalVars.simulation_Time += 1
       println();
 
-    }
-    
+    }  
   }
   
 
@@ -79,8 +80,6 @@ object EcoSim {
              updatedSpecies.put(pr, v)
            }   
          }
-         
-         
        }
        )
     ) 
@@ -91,7 +90,6 @@ object EcoSim {
           sp._population = updatedSpecies(sp)   
        }
     )
-    
     
   }
 
@@ -115,12 +113,10 @@ object EcoSim {
     showDeterministicEvents()
   }
   
-  
   //returns true if a species exists
   def speciesExists(name: String) = {
-  {
     GlobalVars.species.contains(name)
-  }}
+  }
   
   
   //prints out names and probs of all random events
@@ -161,14 +157,186 @@ object EcoSim {
   }
   
   
+  def testTraits(currentSpecies : Species){
+      var currentTrait : String = null
+      var accumulator : Double = 0.0
+      var phenoMap : Map[String, Double] = null
+      if(currentSpecies._traitReference != null){
+        currentSpecies._traitReference.keys.foreach{ i =>
+          currentTrait = i
+          accumulator = 0.0
+          var phenoMap = currentSpecies._traits(currentSpecies._traitReference(i))
+          phenoMap.keys.foreach{ j =>
+            accumulator += phenoMap(j)
+          }
+          if(accumulator != 1.0){
+            println("\nWARNING\n"+"Occurences of trait \""+currentTrait+"\" do not sum to 1.") 
+          }
+        }
+      }
+      
+    }
+
+  implicit def speciesString(name: String): Species = {
+    GlobalVars.getSpecies(name)
+  }
+
+  implicit def eventString(name: String):Event = {
+    var e = GlobalVars.getEvent(name)
+    e match { 
+      case e: DeterministicEvent => GlobalVars.getDeterministicEvent(name)
+      case e: RandomEvent => GlobalVars.getRandomEvent(name)
+      case e: GenericEvent => GlobalVars.getGenericEvent(name)
+    }
+  }
   
-  // *************************** Internal Code ******************************
+  object GlobalVars {
 
-  //lets have a way for global events to impact everything
-  //like bad weather kills an entire species 
-  //so events?
+    var simulation_Time: Int = 0
+    var end_of_world: Int = 0
+    
+    var DoNothing: String = "DoNothing"
+    
+    var species = Map[String, Species]()
+    var events = Map[String, Event]()
+    
+    var deterministicEvents = Map[String, DeterministicEvent]()
+    var randomEvents = Map[String, RandomEvent]()
+    var genericEvents = Map[String, GenericEvent]()
+    
+    def addSpecies(s: Species) {
+      species += (s._name -> s)
+    }
 
-  class Species {
+    def addDeterministicEvent(e: DeterministicEvent) {
+      deterministicEvents += (e._name -> e)
+      events += (e._name -> e)
+    }
+    
+    def addRandomEvent(e: RandomEvent) {
+      randomEvents += (e._name -> e)
+      events += (e._name -> e)
+    }
+    
+    def addGenericEvent(e: GenericEvent) {
+      genericEvents += (e._name -> e)
+      events += (e._name -> e)
+    }
+
+    def getSpecies(name: String): Species = {
+      if (species.contains(name)) species(name)
+      else null
+    }
+
+    def getDeterministicEvent(name: String): DeterministicEvent = {
+      if (deterministicEvents.contains(name)) deterministicEvents(name)
+      else null
+    }
+    
+    def getRandomEvent(name: String): RandomEvent = {
+      if (randomEvents.contains(name)) randomEvents(name)
+      else null
+    }
+    
+    def getGenericEvent(name: String): GenericEvent = {
+      if (genericEvents.contains(name)) genericEvents(name)
+      else null
+    }
+    
+    def getEvent(n: String): Event = {
+      if (events.contains(n)) events(n)
+      else null
+    }
+}
+  
+  abstract class Event {
+    
+    var _name: String = null
+    var _time: Int = 0
+    
+    // list of commands for this event
+    var _statements: () => Unit = _
+    
+    def called(n: String): Event
+    
+    def show() {
+      println(_name + " occurs at " + _time)
+    }
+    
+
+    def execute() {
+      _statements.apply()
+    }
+    
+    def define(statements: Function0[Unit]) = {
+      _statements = statements
+    }
+    
+}
+  
+class DeterministicEvent extends Event {
+
+    // Setter for event name
+    def called(n: String) = {
+      _name = n
+      GlobalVars.addDeterministicEvent(this)
+      this
+    }
+
+    def occursAtTime(t: Int) = {
+      _time = t
+      this
+    }
+    
+    def runAll() {
+      if (_time == GlobalVars.simulation_Time) {
+        println("************** "+ _name + " occurred **************")
+        execute()
+      }
+    }
+  }
+  
+class RandomEvent extends Event {
+    var _probability: Double = 0.0
+    
+    def getProbability(): Double = {
+      _probability
+    }
+    
+    def withProbability(p: Double): RandomEvent = {
+      _probability = p
+      this
+    }
+    
+    def runAll() {
+      println("************** "+ _name + " occurred **************")
+      execute()
+    }
+    
+    // Setter for event name
+    def called(n: String) = {
+      _name = n
+      GlobalVars.addRandomEvent(this)
+      this
+    }    
+  }
+  
+class GenericEvent extends Event {
+    
+    // Setter for event name
+    def called(n: String) = {
+      _name = n
+      GlobalVars.addGenericEvent(this)
+      this
+    } 
+    
+    def runAll() {
+      println("************** "+ _name + " occurred **************")
+      execute()
+    }   
+}
+
+class Species {
 
     // private vars for Species
     var _name: String = null
@@ -182,6 +350,7 @@ object EcoSim {
     var _currentTrait : String = null
     
     var prey = Map[String, Long]()
+    var preyEvent = Map[String, (Long, String)]()
 
     // Setter for species name
     def called(n: String) = {
@@ -260,8 +429,6 @@ object EcoSim {
           }
         }
       }
-      
-      
     }
 
     // print name and population
@@ -307,7 +474,24 @@ object EcoSim {
 
     
     def setAsPrey(s: String, consumption: Long) {
-        if (!speciesExists(s)) {
+        
+        if (!GlobalVars.genericEvents.contains(GlobalVars.DoNothing)) {
+          
+          new GenericEvent called GlobalVars.DoNothing define (() => {
+            println("Nothing should happen")
+          })
+        }
+        
+//        if (!speciesExists(s)) {
+//           println(s + " is extinct *****")
+//        }
+        else {
+           prey += (s -> consumption)
+        }
+    }
+    
+    def setAsPrey(s: String, consumption: Long, ev: String) {
+        if (!EcoSim.speciesExists(s)) {
            println(s + " is extinct *****")
         }
         else {
@@ -316,7 +500,7 @@ object EcoSim {
     }
     
     def setAsPredator(s: String, consumption: Long) {
-        if (!speciesExists(s)) {
+        if (!EcoSim.speciesExists(s)) {
            println(s + " is extinct *****")
         }
         else {
@@ -373,164 +557,11 @@ object EcoSim {
         print( "Phenotype = " + i )
         println(" Occurence = " + currentMap(i) )}
     }
-    
-    
-  }
+}
+
+
+
   
-  def testTraits(currentSpecies : Species){
-      var currentTrait : String = null
-      var accumulator : Double = 0.0
-      var phenoMap : Map[String, Double] = null
-      if(currentSpecies._traitReference != null){
-        currentSpecies._traitReference.keys.foreach{ i =>
-          currentTrait = i
-          accumulator = 0.0
-          var phenoMap = currentSpecies._traits(currentSpecies._traitReference(i))
-          phenoMap.keys.foreach{ j =>
-            accumulator += phenoMap(j)
-          }
-          if(accumulator != 1.0){
-            println("\nWARNING\n"+"Occurences of trait \""+currentTrait+"\" do not sum to 1.") 
-          }
-        }
-      }
-      
-    }
-
-  implicit def speciesString(name: String): Species = {
-    GlobalVars.getSpecies(name)
-  }
-
-  implicit def eventString(name: String):Event = {
-    var e = GlobalVars.getEvent(name)
-    e match { 
-      case e: DeterministicEvent => GlobalVars.getDeterministicEvent(name)
-      case e: RandomEvent => GlobalVars.getRandomEvent(name)
-    }
-  }
-  
-
-  abstract class Event {
-    
-    var _name: String = null
-    var _time: Int = 0
-    
-    // list of commands for this event
-    var _statements: () => Unit = _
-    
-    def called(n: String): Event
-    
-    def show() {
-      println(_name + " occurs at " + _time)
-    }
-    
-
-    def execute() {
-      _statements.apply()
-    }
-    
-    def define(statements: Function0[Unit]) = {
-      _statements = statements
-    }
-    
-  }
-  
-  class DeterministicEvent extends Event {
-
-    // Setter for event name
-    def called(n: String) = {
-      _name = n
-      GlobalVars.addDeterministicEvent(this)
-      this
-    }
-
-    def occursAtTime(t: Int) = {
-      _time = t
-      this
-    }
-    
-    def runAll() {
-      if (_time == GlobalVars.simulation_Time) {
-        println("************** "+ _name + " occurred **************")
-        execute()
-      }
-    }
-  }
-  
-  class RandomEvent extends Event {
-    var _probability: Double = 0.0
-    
-    def getProbability(): Double = {
-      _probability
-    }
-    
-    def withProbability(p: Double): RandomEvent = {
-      _probability = p
-      this
-    }
-    
-    def runAll() {
-      println("************** "+ _name + " occurred **************")
-      execute()
-    }
-    
-    // Setter for event name
-    def called(n: String) = {
-      _name = n
-      GlobalVars.addRandomEvent(this)
-      this
-    }    
-    
-  }
-
-  // Object of Global Variables for program users to interact with
-  object GlobalVars {
-
-    var simulation_Time: Int = 0
-    var end_of_world: Int = 0
-    
-    var species = Map[String, Species]()
-    var events = Map[String, Event]()
-    
-    var deterministicEvents = Map[String, DeterministicEvent]()
-    var randomEvents = Map[String, RandomEvent]()
-    
-    def addSpecies(s: Species) {
-      species += (s._name -> s)
-    }
-
-    def addDeterministicEvent(e: DeterministicEvent) {
-      deterministicEvents += (e._name -> e)
-      events += (e._name -> e)
-    }
-    
-    def addRandomEvent(e: RandomEvent) {
-      randomEvents += (e._name -> e)
-      events += (e._name -> e)
-    }
-
-    def getSpecies(name: String): Species = {
-      if (species.contains(name)) species(name)
-      else null
-    }
-
-    def getDeterministicEvent(name: String): DeterministicEvent = {
-      if (deterministicEvents.contains(name)) deterministicEvents(name)
-      else null
-    }
-    
-    def getRandomEvent(name: String): RandomEvent = {
-      if (randomEvents.contains(name)) randomEvents(name)
-      else null
-    }
-    
-    def getEvent(n: String): Event = {
-      if (events.contains(n)) events(n)
-      else null
-    }
-
-  }
-
 
   //Species _name of _population growat .4 startingat 0
   //_name parameterType is value
@@ -541,14 +572,9 @@ object EcoSim {
     new Species called "Fly" of 1000 birthrate 0 deathrate 0 startingat 0
     new Species called "Cricket" of 500 birthrate 0 deathrate 0 startingat 0
     new Species called "Jans" of 750 birthrate 0.1 deathrate 0.1 startingat 0
-
-    
-    
-    
     
     showEcosystem()
     simulate(7)
-    
     
     println("\n\n\n\n-----------------\nTESTING TRAITS\n------------\n\n\n")
     
@@ -563,11 +589,8 @@ object EcoSim {
       testTraits(GlobalVars.species(i))
     }
     
-    
-    
     println("\n\n\n\n-----------------\nTESTING TRAITS\n------------\n\n\n")
-    println("\n\nSimulation over\n\n")
-    
+    println("\n\nSimulation over\n\n")    
     
     if(("Jans" population) <  ("Fly" population)){
       "Frog" population 5000
@@ -582,28 +605,11 @@ object EcoSim {
     "Frog" setAsPrey("Cricket", 2)
     
     showEcosystem()
-
-    
     simulate(5)
-    
     showEcosystem()
     
-
-    
-
-
   }
-
 }
-
-
-
-
-
-
-
-
-
 
 
 
