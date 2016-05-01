@@ -241,7 +241,9 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
             accumulator += phenoMap(j)._1
           }
           if (accumulator != 1.0) {
-            println("\nWARNING\n" + "Proportions of trait \"" + currentTrait + "\" do not sum to 1.")
+            println("\n\n-------------------------------------\n"+"WARNING")
+            println("Proportions of trait " + currentTrait + " in species " + currentSpecies._name + " do not sum to 1.")
+            println("-------------------------------------\n\n")
           }
         }
       }
@@ -362,8 +364,6 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
               print("% of population\t")
               print("Birth rate: " + currentMap(i)._2+"\t")
               print("Death rate: " + currentMap(i)._3+"\n")
-              
-              
             }
           }
         }
@@ -615,8 +615,12 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
 
     /********* Simulate ***********/
     def simulate(time: Int) = {
-      //do time-1 because loop is inclusive  
-
+      //Test if trait proportions are valid  
+      EcoSystem.species.keys.foreach { (sp) =>
+          testTraits(sp)
+        }
+      
+      //do time-1 because loop is inclusive
       for (a <- 0 to time - 1) {
         println("Time Step " + (EcoSystem.worldTime + 1));
         println(" _______________________ ");
@@ -642,9 +646,7 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
         predation()
         reproduction()
 
-        EcoSystem.species.keys.foreach { (sp) =>
-          testTraits(sp)
-        }
+        
 
 //        showEcosystem
 
