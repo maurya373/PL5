@@ -2,7 +2,7 @@ import collection.mutable.Buffer
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.Map
 
-object Evo {
+object  testt {
 
   /********* Global States ***********/
   // Object of Global Variables for program users to interact with
@@ -153,15 +153,15 @@ object Evo {
     EcoSystem.species.keys.foreach((sp) =>
 
       // loop through prey of each species
-      sp.preyEvent.keys.foreach((pr) => {
+      sp.prey.keys.foreach((pr) => {
 
-        // if species is extinct run generic event
         if (EcoSystem.species(pr)._population == 0) {
-          
-          EcoSystem.species(sp).preyEvent(pr)._2.execute();
+          println(pr + " is extinct ******")
         } else {
-          
-          var deathNum = sp.preyEvent(pr)._1 * EcoSystem.species(sp)._population
+          println(pr + " is not extinct")
+          var deathNum = sp.prey(pr) * EcoSystem.species(sp)._population
+
+          //println(sp._population + " " + sp + " ate " + deathNum + " " + pr)
 
           if (updatedSpecies.contains(pr)) {
             var v = Math.max(updatedSpecies(pr) - deathNum, 0)
@@ -180,35 +180,10 @@ object Evo {
       })
 
   }
-  
-  def reproduction() {
-    
-    // iterate through species
-       EcoSystem.species.keys.foreach((sp) =>
-        if (EcoSystem.species.contains(sp)) {
-          if (sp.getTime() <= EcoSystem.worldTime) {
-           
-            sp._traitReference.keys.foreach((tr) => 
-              
-              println(tr)
-            )
-            
-            // for each trait
-            // apply birthrate and deathrate for each trait type
-            // update trait probabilities
-            // update species populations
-            //after reproduction, we have a new population, and a new trait distribution
-            
-           // sp.update(1) //update the population by one time unit
-            //sp.showNumbers() //show the updated population of the species
-          }
-        })
-    
-  }
 
   /********* Classes ***********/
   //SPECIES
-  class Species extends Expression {
+  class Species extends Expression{
     //properties of species
     var _name: Symbol = null
     var _time: Int = 0
@@ -223,7 +198,8 @@ object Evo {
     var _currentTrait : String = null
     
     //prey of the species
-    var preyEvent = Map[Symbol, (Long, Symbol)]()
+    var prey = Map[Symbol, Long]()
+    var preyEvent = Map[Symbol, (Long, String)]()
 
     
     //SETTERS
@@ -292,17 +268,17 @@ object Evo {
       println("Death rate: " + _deathrate)
       println("Start time: " + _time)
       println("Carrying Capacity: " + _carryingcapacity)
-      if (!preyEvent.isEmpty)
+      if (!prey.isEmpty)
       {
         print("One "+ _name + " consumes ")
         var count: Int = 0
-        preyEvent.keys.foreach((p) =>
-            if (count == preyEvent.size-1) {
-              print(p + ": " + preyEvent(p)._1)
+        prey.keys.foreach((p) =>
+            if (count == prey.size-1) {
+              print(p + ": " + prey(p))
               count = count + 1
             }
             else {
-              print(p + ": " + preyEvent(p)._1 + ", ")
+              print(p + ": " + prey(p) + ", ")
               count = count + 1
             })
         println()
@@ -351,39 +327,29 @@ object Evo {
           )
         }
         
-        setAsPrey(s, consumption, EcoSystem.DoNothing)
 //        if (!speciesExists(s)) {
 //           println(s + " is extinct *****")
 //        }
-//        else {
-//           prey += (s -> consumption)
-//        }
+        else {
+           prey += (s -> consumption)
+        }
     }
     
-    def setAsPrey(s: Symbol, consumption: Long, ev: Symbol) {
+    def setAsPrey(s: Symbol, consumption: Long, ev: String) {
         if (!EcoSystem.species.contains(s)) {
-           println(s + " does not exist *****")
+           println(s + " is extinct *****")
         }
         else {
-           preyEvent += (s -> (consumption, ev))
+           prey += (s -> consumption)
         }
     }
     
     def setAsPredator(s: Symbol, consumption: Long) {
         if (!EcoSystem.species.contains(s)) {
-           println(s + " does not exist *****")
+           println(s + " is extinct *****")
         }
         else {
-           EcoSystem.species(s).setAsPrey(_name, consumption)
-        }
-    }
-    
-    def setAsPredator(s: Symbol, consumption: Long, ev: Symbol) {
-        if (!EcoSystem.species.contains(s)) {
-           println(s + " does not exist *****")
-        }
-        else {
-           EcoSystem.species(s).setAsPrey(_name, consumption, ev)
+           EcoSystem.species(s).prey += (_name -> consumption);
         }
     }
     
@@ -558,7 +524,6 @@ object Evo {
     e match {
       case e: DeterministicEvent => EcoSystem.getDeterministicEvent(name)
       case e: RandomEvent        => EcoSystem.getRandomEvent(name)
-      case e: GenericEvent       => EcoSystem.getGenericEvent(name)
     }
   }
 
@@ -608,7 +573,7 @@ object Evo {
     }
   }
 
-/********* EVO Language ***********/
+  /********* EVO Language ***********/
   //Wrapper class to hold function of a method (uses call-by-name)
   class FUNCTION (e: => List[Expression]){
     def get = e
@@ -662,6 +627,7 @@ object Evo {
     def apply(i: Int) = new UpdateAllPopulationsToClass(i)
   }
   
+ 
   //Evo - updates all populations by a specific growth percentage
   class UpdateAllPopulationsByClass(d: Double) extends Expression {
     EcoSystem.multiplyPopulationByRate(d)
@@ -670,12 +636,16 @@ object Evo {
     def apply(d: Double) = new UpdateAllPopulationsByClass(d)
   }
   
+  
+  
+  
+  
+  
   //Evo - cleaner way to show the ecosystem
   def showEcosystem = EcoSystem.showEcosystem()
  
   def End = Nil
-  
-  
+
   /********* tests ***********/
   def main(args: Array[String]) = {
     //example of creating Species
@@ -684,21 +654,15 @@ object Evo {
     new Species called 'Fly of 1000 birthrate 0 deathrate 0 at 0
     new Species called 'Cricket of 500 birthrate 0 deathrate 0 at 0
 
-    new GenericEvent called 'Fraij definedAs new FUNCTION (
-        Print("Starting it") :: End
-    )
-    
-    
     //set food web relations between species 
-    'Frog setAsPrey ('Fly, 5, 'Fraij)
+    'Frog setAsPrey ('Fly, 5)
     'Frog setAsPrey ('Cricket, 2)
 
     //example of defining deterministic event
     new DeterministicEvent called 'Tornado at 4 definedAs new FUNCTION (
-      
-      Print("Starting it") ::
+      Print("FRAIJ") ::
       (new Species called 'Pog of 1000 birthrate .4 deathrate .3) ::
-      Print("goo") ::
+      Print("okokkok") ::
       If(('Pig getPopulation) < 2000) (
            UpdateAllPopulationsTo(5000) ::
            Print("updated all populations to 5000") ::
@@ -715,9 +679,9 @@ object Evo {
            End
       ) ::
       Step(4)(
-        Print("ok") ::
+        Print("FARES") ::
         If(('Pig getPopulation) < 2) (
-           Print("watermelon") ::
+           Print("shwag") ::
            End
         ) ::
         End
@@ -733,10 +697,9 @@ object Evo {
 
     //run the ecosystem - print the states before and after
     showEcosystem
-    simulate(8)
+    simulate(5)
     showEcosystem
 
     println("---")
   }
-
 }

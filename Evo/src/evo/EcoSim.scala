@@ -212,7 +212,7 @@ object EcoSim {
     "Jans" showTrait "Eye Color"
     "Jans" showTrait "Height"
     
-    "Jans" getTrait "Eye Color" remove 0.2 of "Blue"
+    // "Jans" getTrait "Eye Color" remove 0.2 of "Blue"
         
     GlobalVars.species.keys.foreach{ i =>
       testTraits(GlobalVars.species(i))
