@@ -180,6 +180,31 @@ object Evo {
       })
 
   }
+  
+  def reproduction() {
+    
+    // iterate through species
+       EcoSystem.species.keys.foreach((sp) =>
+        if (EcoSystem.species.contains(sp)) {
+          if (sp.getTime() <= EcoSystem.worldTime) {
+           
+            sp._traitReference.keys.foreach((tr) => 
+              
+              println(tr)
+            )
+            
+            // for each trait
+            // apply birthrate and deathrate for each trait type
+            // update trait probabilities
+            // update species populations
+            //after reproduction, we have a new population, and a new trait distribution
+            
+           // sp.update(1) //update the population by one time unit
+            //sp.showNumbers() //show the updated population of the species
+          }
+        })
+    
+  }
 
   /********* Classes ***********/
   //SPECIES
