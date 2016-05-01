@@ -1,14 +1,11 @@
 package evo {
+import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
+ 
 
-  import collection.mutable.Buffer
-  import scala.collection.mutable.ArrayBuffer
-  import scala.collection.mutable.Map
+
+  
 
   class Evo {
-
-    private var PhenotypeTupleOccurence = 1
-    private var PhenotypeTupleBirthrate = 2
-    private var PhenotypeTupleDeathrate = 3
 
     /********* Global States ***********/
     // Object of Global Variables for program users to interact with
@@ -19,7 +16,7 @@ package evo {
       //all the species in the ecosystem
       var species = Map[Symbol, Species]()
       //all functions of events
-      var functions = Map[Symbol, functionWrapper[_]]()
+      var functions = Map[Symbol, Function]()
       //all events
       var events = Map[Symbol, EventClass]()
       //all deterministic events
@@ -101,11 +98,12 @@ package evo {
           species(sp).population(i))
       }
 
-      def multiplyPopulationByRate(d: Double) {
-        species.keys.foreach((sp) =>
-          species(sp).update(d))
-      }
 
+
+      def killSpecies(s: Symbol) {
+        s.population(0)
+      }
+      
       val DoNothing: Symbol = 'DoNothing
 
       //SHOW METHODS
@@ -159,6 +157,7 @@ package evo {
       EcoSystem.species.keys.foreach((sp) =>
 
         // loop through prey of each species
+
         sp.preyEvent.keys.foreach((pr) => {
 
           // if species is extinct run generic event
@@ -221,6 +220,7 @@ package evo {
             }
           }
           sp.population(newPop)
+          sp.showNumbers()
         }
       }
 
@@ -248,11 +248,13 @@ package evo {
 
     /********* Classes ***********/
     //SPECIES
-    class Species {
+    class Species extends Expression {
+
       //properties of species
       var _name: Symbol = null
       var _time: Int = 0
       var _population: Long = 0
+
       var _carryingcapacity: Long = Long.MaxValue
 
       //Trait name and reference index in _traits, for example:
@@ -268,6 +270,9 @@ package evo {
 
       //prey of the species
       var preyEvent = Map[Symbol, (Long, Symbol)]()
+
+
+      
 
       //SETTERS
       //setter for the _name property
@@ -285,13 +290,16 @@ package evo {
       }
 
       //setter for the _carryingcapacity property
-      def carryingcapacity(cc: Long) = {
+
+      def withCapacity(cc: Long) = {
         _carryingcapacity = cc
         this
       }
 
+
+
       //setter for the _time property
-      def at(t: Int) = {
+      def enterAt(t: Int) = {
         _time = t
         this
       }
@@ -301,9 +309,14 @@ package evo {
         of(p)
       }
 
+      //another setter for the _carryingcapacity property
+      def capacity(t: Int) = {
+        withCapacity(t)
+      }
+
       //another setter for the _time property
-      def time(t: Int) {
-        at(t)
+      def time(t: Int) = {
+        enterAt(t)
       }
 
       //GETTERS
@@ -329,7 +342,8 @@ package evo {
             } else {
               print(p + ": " + preyEvent(p)._1 + ", ")
               count = count + 1
-            })
+              }
+            )
           println()
         }
         if (this._traitReference != null) {
@@ -351,58 +365,52 @@ package evo {
         println(_name + " Population: " + _population)
       }
 
-      //updates the population based on the growth
-      def update(t: Int) = population(grow(t))
-      //updates population based on percentage
-      def update(t: Double) = population(grow(t))
 
-      //grows the population based on a percentage
-      private def grow(t: Double): Long =
-        if (t > 0) ((_population * t).toLong)
-        else grow(t - 1)
+
+
 
       def setAsPrey(s: Symbol, consumption: Long) {
-
+        
         if (!EcoSystem.genericEvents.contains(EcoSystem.DoNothing)) {
-          new GenericEvent called EcoSystem.DoNothing definedAs (new FUNCTION {
-            new PRINT("Nothing should happen")
-          })
+          
+          new GenericEvent called EcoSystem.DoNothing definedAs new Function (
+            Print("Nothing should happen") ::
+            End
+          )
         }
-
+        
         setAsPrey(s, consumption, EcoSystem.DoNothing)
-        //        if (!speciesExists(s)) {
-        //           println(s + " is extinct *****")
-        //        }
-        //        else {
-        //           prey += (s -> consumption)
-        //        }
-      }
-
-      def setAsPrey(s: Symbol, consumption: Long, ev: Symbol) {
+    }
+    
+    def setAsPrey(s: Symbol, consumption: Long, ev: Symbol) {
         if (!EcoSystem.species.contains(s)) {
-          println(s + " does not exist *****")
-        } else {
-          preyEvent += (s -> (consumption, ev))
+           println(s + " does not exist *****")
         }
-      }
-
-      def setAsPredator(s: Symbol, consumption: Long) {
+        else {
+           preyEvent += (s -> (consumption, ev))
+        }
+    }
+    
+    def setAsPredator(s: Symbol, consumption: Long) {
         if (!EcoSystem.species.contains(s)) {
-          println(s + " does not exist *****")
-        } else {
-          EcoSystem.species(s).setAsPrey(_name, consumption)
+           println(s + " does not exist *****")
         }
-      }
-
-      def setAsPredator(s: Symbol, consumption: Long, ev: Symbol) {
+        else {
+           EcoSystem.species(s).setAsPrey(_name, consumption)
+        }
+    }
+    
+    def setAsPredator(s: Symbol, consumption: Long, ev: Symbol) {
         if (!EcoSystem.species.contains(s)) {
-          println(s + " does not exist *****")
-        } else {
-          EcoSystem.species(s).setAsPrey(_name, consumption, ev)
+           println(s + " does not exist *****")
         }
-      }
+        else {
+           EcoSystem.species(s).setAsPrey(_name, consumption, ev)
+        }
+    }
 
       //
+
       def addTrait(traitName: Symbol) = {
         if (this._traits == null) {
           //Init traits list and add this map
@@ -428,13 +436,17 @@ package evo {
         if (this._traits.isDefinedAt(currentIndex)) {
           //May need to create map?
           var tempMap = this._traits.apply(currentIndex)
+
           tempMap.+=(pheno -> phenoData)
+
           this._traits.update(currentIndex, tempMap)
           this
           //Okay, added phenotype.
         } else {
           //CurrentIndex does not exist so need to create map.
+
           var newMap = Map[Symbol, (Double, Double, Double)](pheno -> phenoData)
+
           this._traits.insert(currentIndex, newMap)
           this
           //Added phenotype.
@@ -442,13 +454,17 @@ package evo {
       }
 
       //
+
       def showTrait(traitName: Symbol) {
+
         var currentIndex = this._traitReference.apply(traitName)
         println("Trait: " + traitName)
         var currentMap = this._traits.apply(currentIndex)
         currentMap.keys.foreach { i =>
           print("Phenotype = " + i)
+
           println(" Data = " + currentMap(i).toString())
+
         }
       }
     }
@@ -491,8 +507,10 @@ package evo {
       }
 
       //add the function to the global map of functions (using call-by-name)
-      def definedAs(function: => FUNCTION) {
-        EcoSystem.functions += (_name -> new functionWrapper(function))
+
+      def definedAs(function: => Function) {
+        EcoSystem.functions += (_name -> function)
+
       }
 
       //run the event's code if the time is right
@@ -536,8 +554,10 @@ package evo {
       }
 
       //add the function to the global map of functions (using call-by-name)
-      def definedAs(function: => FUNCTION) {
-        EcoSystem.functions += (_name -> new functionWrapper(function))
+
+      def definedAs(function: => Function) {
+        EcoSystem.functions += (_name -> function)
+
       }
     }
 
@@ -556,8 +576,10 @@ package evo {
       }
 
       //add the function to the global map of functions (using call-by-name)
-      def definedAs(function: => FUNCTION) {
-        EcoSystem.functions += (_name -> new functionWrapper(function))
+
+      def definedAs(function: => Function) {
+        EcoSystem.functions += (_name -> function)
+
       }
 
       def at(t: Int) = {
@@ -573,6 +595,7 @@ package evo {
         case e: DeterministicEvent => EcoSystem.getDeterministicEvent(name)
         case e: RandomEvent        => EcoSystem.getRandomEvent(name)
         case e: GenericEvent       => EcoSystem.getGenericEvent(name)
+
       }
     }
 
@@ -584,6 +607,7 @@ package evo {
     /********* Simulate ***********/
     def simulate(time: Int) = {
       //do time-1 because loop is inclusive  
+
       for (a <- 0 to time - 1) {
         println("Time Step " + (EcoSystem.worldTime + 1));
         println(" _______________________ ");
@@ -605,6 +629,7 @@ package evo {
           }
         })
 
+
         predation()
         reproduction()
 
@@ -612,7 +637,8 @@ package evo {
           testTraits(sp)
         }
 
-        showEcosystem
+//        showEcosystem
+
 
         //increment the time
         EcoSystem.worldTime += 1
@@ -622,115 +648,134 @@ package evo {
 
     /********* EVO Language ***********/
     //Wrapper class to hold function of a method (uses call-by-name)
-    class functionWrapper[Expression](body: => Expression) {
-      //use get to run the function code
-      def get = body
+    class Function(e: => List[Expression]) {
+      def get = e
     }
-
-    //class to create a  new function
-    class FUNCTION {
-      //for every expression written, add it to the buffer
-      val expressions = Buffer[Expression]()
-      trait Expression {
-        expressions += this
-      }
-    }
-
-    //Evo - Utility class that does nothing
-    class EMPTY extends Expression {}
-    def empty = new EMPTY()
 
     //Evo - takes a condition and the expressions to be run if the condition is true
-    class IF(condition: Boolean, expressions: => Expression) extends Expression {
-      if (condition) expressions
+    class IfClass(condition: Boolean)(e: => List[Expression]) extends Expression {
+      if (condition) e
+    }
+    //used to call If without new keyword
+    object If {
+      def apply(condition: Boolean)(e: => List[Expression]) = new IfClass(condition)(e)
     }
 
     //Evo - executes the expressions i number of times, for loop
-    class STEP(i: Int, expressions: => Expression) extends Expression {
+    class StepClass(i: Int)(e: => List[Expression]) extends Expression {
       var counter = 0
       while (counter < i) {
-        expressions
+        e
         counter += 1
       }
-      def iteration = counter
+    }
+    //used to call Step without new keyword
+    object Step {
+      def apply(i: Int)(e: => List[Expression]) = new StepClass(i)(e)
     }
 
     //Evo - prints the string str
-    class PRINT(str: String) extends Expression {
+    class PrintClass(str: String) extends Expression {
       println(str)
+    }
+    //used to print without the new keyword
+    object Print {
+      def apply(str: String) = new PrintClass(str)
     }
 
     //Evo - update species population
-    class UPDATE_POPULATION(species: Symbol, p: Long) extends Expression {
+    class UpdatePopulationClass(species: Symbol, p: Long) extends Expression {
       species population p
+    }
+    //used to call the method without using new keyword
+    object UpdatePopulation {
+      def apply(species: Symbol, p: Long) = new UpdatePopulationClass(species, p)
     }
 
     //Evo - updates all populations to a specific number
-    class UPDATE_ALL_POPULATIONS_TO(i: Int) extends Expression {
+    class UpdateAllPopulationsToClass(i: Int) extends Expression {
       EcoSystem.updatePopulations(i)
     }
+    object UpdateAllPopulationsTo {
+      def apply(i: Int) = new UpdateAllPopulationsToClass(i)
+    }
 
-    //Evo - updates all populations by a specific growth percentage
-    class UPDATE_ALL_POPULATIONS_BY(d: Double) extends Expression {
-      EcoSystem.multiplyPopulationByRate(d)
+    
+
+    
+     //Evo - kills a species
+    class KillSpeciesClass(s: Symbol) extends Expression {
+      EcoSystem.killSpecies(s)
+    }
+    object KillSpecies {
+      def apply(s: Symbol) = new KillSpeciesClass(s)
+
     }
 
     //Evo - cleaner way to show the ecosystem
     def showEcosystem = EcoSystem.showEcosystem()
 
-    /********* tests ***********/
-    def main(args: Array[String]) = {
-      //example of creating Species
-      //    new Species called 'Pig of 1000 birthrate .4 deathrate .3
-      //    new Species called 'Frog of 100 birthrate 0 deathrate 0 at 0 carryingcapacity 5000
-      new Species called 'Fly of 100 at 0
-      //    new Species called 'Cricket of 500 birthrate 0 deathrate 0 at 0
-
-      'Fly addTrait 'EyeColor phenotype ('Red, (0.5, 0.3, 0.1)) phenotype ('Small, (0.5, 0.2, 0.1))
-
-      /*
-    new GenericEvent called 'Fraij definedAs (new FUNCTION {
-      new PRINT("FRAIJIFY")
-    })
-    
-    
-    //set food web relations between species 
-    'Frog setAsPrey ('Fly, 5, 'Fraij)
-    'Frog setAsPrey ('Cricket, 2)
-
-    //example of defining deterministic event
-    new DeterministicEvent called 'Tornado at 4 definedAs (new FUNCTION {
-      new PRINT("FRAIJ")
-      new IF('Pig.getPopulation < 2000, (
-        new UPDATE_ALL_POPULATIONS_TO(5000)
-      ))
-      new IF(1 < 2, (
-        new UPDATE_POPULATION('Pig, 696969)
-      ))
-      new IF(('Pig getPopulation) < ('Frog getPopulation), (
-        new UPDATE_ALL_POPULATIONS_BY(.2)  
-      ))
-      new STEP(3, (
-        new PRINT("FARES")
-      ))
-    })
-
-    //example of defining random event
-    new RandomEvent called 'Wipeout withProbability .5 definedAs (new FUNCTION {
-      new PRINT("WIPEOUT!!")
-    })
-
-    //run the ecosystem - print the states before and after
-     * 
-     * 
-     */
-      showEcosystem
-      simulate(3)
-      showEcosystem
-
-      println("---")
-    }
+    def End = Nil
 
   }
 
 }
+  
+  /********* tests ***********/
+  /*def main(args: Array[String]) = {
+    //example of creating Species
+    new Species called 'Pig of 1000 birthrate .4 deathrate .3
+    new Species called 'Frog of 100 birthrate 0 deathrate 0 at 0 carryingcapacity 5000
+    new Species called 'Fly of 1000 birthrate 0 deathrate 0 at 0
+    new Species called 'Cricket of 500 birthrate 0 deathrate 0 at 0
+
+    //set food web relations between species 
+    'Frog setAsPrey ('Fly, 5)
+    'Frog setAsPrey ('Cricket, 2)
+
+    //example of defining deterministic event
+    new DeterministicEvent called 'Tornado at 4 definedAs new Function (
+      Print("Starting it") ::
+      (new Species called 'Pog of 1000 birthrate .4 deathrate .3) ::
+      Print("goo") ::
+      If(('Pig getPopulation) < 2000) (
+           UpdateAllPopulationsTo(5000) ::
+           Print("updated all populations to 5000") ::
+           End
+      ) ::
+      If(1 < 2) (
+           UpdatePopulation('Pig, 696969) ::
+           Print("updated all pigs to 696969") ::
+           End
+      ) ::
+      If(('Pig getPopulation) > ('Frog getPopulation)) (
+           UpdateAllPopulationsBy(.2) ::
+           Print("updated all growth by .2") ::
+           End
+      ) ::
+      Step(4)(
+        Print("ok") ::
+        If(('Pig getPopulation) < 2) (
+           Print("watermelon") ::
+           End
+        ) ::
+        End
+      ) ::
+      End
+    )
+
+    //example of defining random event
+    new RandomEvent called 'Wipeout withProbability .5 definedAs new Function (
+      Print("WIPEOUT!!") ::
+      End
+    )
+
+    //run the ecosystem - print the states before and after
+    showEcosystem
+    simulate(5)
+    showEcosystem
+
+    println("---")
+  }
+
+}*/
