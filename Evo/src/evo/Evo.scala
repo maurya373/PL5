@@ -225,6 +225,8 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
       }
 
     }
+    
+    
 
     def testTraits(currentSpecies: Species) {
       var currentTrait: Symbol = null
@@ -348,13 +350,20 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
         }
         if (this._traitReference != null) {
           var currentIndex = 0
+          var currentPropor : Double = 0.0
           this._traitReference.keys.foreach { i =>
             currentIndex = this._traitReference.apply(i)
             println("Trait: " + i)
             var currentMap = this._traits.apply(currentIndex)
             currentMap.keys.foreach { i =>
-              print("Phenotype = " + i)
-              println(" Occurence = " + currentMap(i))
+              currentPropor = currentMap(i)._1*100
+              print("Phenotype: " + i+"\t")
+              print(f"$currentPropor%2.2f")
+              print("% of population\t")
+              print("Birth rate: " + currentMap(i)._2+"\t")
+              print("Death rate: " + currentMap(i)._3+"\n")
+              
+              
             }
           }
         }
