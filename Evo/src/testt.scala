@@ -2,7 +2,7 @@ import collection.mutable.Buffer
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.Map
 
-object Evo {
+object  testt {
 
   /********* Global States ***********/
   // Object of Global Variables for program users to interact with
@@ -183,7 +183,7 @@ object Evo {
 
   /********* Classes ***********/
   //SPECIES
-  class Species extends Expression {
+  class Species extends Expression{
     //properties of species
     var _name: Symbol = null
     var _time: Int = 0
@@ -573,7 +573,7 @@ object Evo {
     }
   }
 
-/********* EVO Language ***********/
+  /********* EVO Language ***********/
   //Wrapper class to hold function of a method (uses call-by-name)
   class FUNCTION (e: => List[Expression]){
     def get = e
@@ -627,6 +627,7 @@ object Evo {
     def apply(i: Int) = new UpdateAllPopulationsToClass(i)
   }
   
+ 
   //Evo - updates all populations by a specific growth percentage
   class UpdateAllPopulationsByClass(d: Double) extends Expression {
     EcoSystem.multiplyPopulationByRate(d)
@@ -635,12 +636,16 @@ object Evo {
     def apply(d: Double) = new UpdateAllPopulationsByClass(d)
   }
   
+  
+  
+  
+  
+  
   //Evo - cleaner way to show the ecosystem
   def showEcosystem = EcoSystem.showEcosystem()
  
   def End = Nil
-  
-  
+
   /********* tests ***********/
   def main(args: Array[String]) = {
     //example of creating Species
@@ -655,9 +660,9 @@ object Evo {
 
     //example of defining deterministic event
     new DeterministicEvent called 'Tornado at 4 definedAs new FUNCTION (
-      Print("Starting it") ::
+      Print("FRAIJ") ::
       (new Species called 'Pog of 1000 birthrate .4 deathrate .3) ::
-      Print("goo") ::
+      Print("okokkok") ::
       If(('Pig getPopulation) < 2000) (
            UpdateAllPopulationsTo(5000) ::
            Print("updated all populations to 5000") ::
@@ -674,9 +679,9 @@ object Evo {
            End
       ) ::
       Step(4)(
-        Print("ok") ::
+        Print("FARES") ::
         If(('Pig getPopulation) < 2) (
-           Print("watermelon") ::
+           Print("shwag") ::
            End
         ) ::
         End
@@ -697,5 +702,4 @@ object Evo {
 
     println("---")
   }
-
 }
