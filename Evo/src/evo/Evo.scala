@@ -1,5 +1,6 @@
 package evo {
 import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
+
  
 
 
@@ -226,6 +227,16 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
 
     }
     
+    def mutations(currentSpecies : Species) {
+      //For each species
+        //
+
+    }
+    
+    
+    
+    
+    
     
 
     def testTraits(currentSpecies: Species) {
@@ -260,6 +271,8 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
       var _population: Long = 0
 
       var _carryingcapacity: Long = Long.MaxValue
+      
+      var _mutability : Double = 0.0
 
       //Trait name and reference index in _traits, for example:
       //"Eye Color" -> 0
@@ -305,6 +318,11 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
       //setter for the _time property
       def enterAt(t: Int) = {
         _time = t
+        this
+      }
+      
+      def mutationRate(m : Double) = {
+        _mutability = m
         this
       }
 
@@ -375,7 +393,62 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
       }
 
 
-
+      def remove(deaths: Long, spTrait: Symbol, givenType: Symbol){
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        var amountToRemove : Long = 0
+        if(deaths <= population){
+          amountToRemove = deaths
+        }
+        else{
+          amountToRemove = population
+        }
+        
+        var netDiff = (amountToRemove.toDouble/_population).toDouble
+        var newProportion : Double = 0.0
+        var currentTuple : (Double, Double, Double) = (0.0, 0.0, 0.0)
+        _traits(_traitReference(spTrait)).keys.foreach{ phenotype =>
+          currentTuple = _traits(_traitReference(spTrait)).apply(phenotype)
+          if(phenotype.equals(givenType)){
+            newProportion =  (currentTuple._1 - netDiff)/(1-netDiff)
+          }
+          else{
+            newProportion =  (currentTuple._1)/(1-netDiff)
+          }
+          _traits(_traitReference(spTrait))(phenotype) = (newProportion, currentTuple._2, currentTuple._3)
+        }
+        _population -= amountToRemove
+      }
+      
+      def add(births: Long, spTrait: Symbol, givenType: Symbol){
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        
+        var netDiff = (births.toDouble/_population).toDouble
+        var newProportion : Double = 0.0
+        var currentTuple : (Double, Double, Double) = (0.0, 0.0, 0.0)
+        _traits(_traitReference(spTrait)).keys.foreach{ phenotype =>
+          currentTuple = _traits(_traitReference(spTrait)).apply(phenotype)
+          if(phenotype.equals(givenType)){
+            newProportion =  (currentTuple._1 + netDiff)/(1+netDiff)
+          }
+          else{
+            newProportion =  (currentTuple._1)/(1+netDiff)
+          }
+          _traits(_traitReference(spTrait))(phenotype) = (newProportion, currentTuple._2, currentTuple._3)
+        }
+        _population += births
+      }
+      
+      def add(births: Double, spTrait: Symbol, givenType: Symbol){
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        population = (population * (births)).toLong
+        add(population, spTrait, givenType)
+      }
+      
+      def remove(deaths: Double, spTrait: Symbol, givenType: Symbol){
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        population = (population * (deaths)).toLong
+        remove(population, spTrait, givenType)
+      }
 
 
       def setAsPrey(s: Symbol, consumption: Long) {
@@ -733,6 +806,9 @@ import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
 }
   
   /********* tests ***********/
+
+
+
   /*def main(args: Array[String]) = {
     //example of creating Species
     new Species called 'Pig of 1000 birthrate .4 deathrate .3
