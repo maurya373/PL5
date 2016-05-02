@@ -172,7 +172,7 @@ class Evo {
             EcoSystem.species(sp).preyEvent(pr)._2.execute();
           } else {
 
-            var deathNum = sp.preyEvent(pr)._1 * EcoSystem.species(sp)._population
+            var deathNum = (sp.preyEvent(pr)._1 * EcoSystem.species(sp)._population).toLong
 
             if (updatedSpecies.contains(pr)) {
               var v = Math.max(updatedSpecies(pr) - deathNum, 0)
@@ -300,7 +300,7 @@ class Evo {
       var _currentTrait: Symbol = null
 
       //prey of the species
-      var preyEvent = Map[Symbol, (Long, Symbol)]()
+      var preyEvent = Map[Symbol, (Double, Symbol)]()
 
       
 
@@ -496,7 +496,7 @@ class Evo {
         new ExpressionResult
       }
 
-      def setAsPrey(s: Symbol, consumption: Long): Expression = {
+      def setAsPrey(s: Symbol, consumption: Double): Expression = {
         
         if (!EcoSystem.genericEvents.contains(EcoSystem.DoNothing)) {
           
@@ -509,7 +509,7 @@ class Evo {
         setAsPrey(s, consumption, EcoSystem.DoNothing)
     }
     
-    def setAsPrey(s: Symbol, consumption: Long, ev: Symbol): Expression = {
+    def setAsPrey(s: Symbol, consumption: Double, ev: Symbol): Expression = {
         if (!EcoSystem.species.contains(s)) {
            println(s + " does not exist *****")
         }
@@ -519,7 +519,7 @@ class Evo {
         new ExpressionResult
     }
     
-    def setAsPredator(s: Symbol, consumption: Long): Expression = {
+    def setAsPredator(s: Symbol, consumption: Double): Expression = {
         if (!EcoSystem.species.contains(s)) {
            println(s + " does not exist *****")
         }
@@ -529,7 +529,7 @@ class Evo {
         new ExpressionResult
     }
     
-    def setAsPredator(s: Symbol, consumption: Long, ev: Symbol): Expression = {
+    def setAsPredator(s: Symbol, consumption: Double, ev: Symbol): Expression = {
         if (!EcoSystem.species.contains(s)) {
            println(s + " does not exist *****")
         }
@@ -828,6 +828,14 @@ class Evo {
     }
     object UpdateAllPopulationsTo {
       def apply(i: Int) = new UpdateAllPopulationsToClass(i)
+    }
+    
+    //Evo - updates all populations by a specific growth percentage
+    class UpdateAllPopulationsByClass(d: Double) extends Expression {
+      EcoSystem.multiplyAllPopulationsByRate(d)
+    }
+    object UpdateAllPopulationsBy {
+      def apply(d: Double) = new UpdateAllPopulationsByClass(d)
     }
     
     //Evo - updates a population by a specific growth percentage
