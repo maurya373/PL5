@@ -154,7 +154,7 @@ object Tests extends Evo {
     )
     
     
-    simulate(5)
+    simulate(500)
     showEcosystem
     
   }

@@ -219,6 +219,7 @@ class Evo {
 
               sp._traits(sp._traitReference(spTrait)).keys.foreach { phenotype =>
                 phenoData = sp._traits(sp._traitReference(spTrait)).apply(phenotype)
+                
                 newTypeProportion = (phenoData._1 * (1 + (phenoData._2 - phenoData._3))) / (1 + sum)
                 sp._traits(sp._traitReference(spTrait))(phenotype) = (newTypeProportion, phenoData._2, phenoData._3)
               }
@@ -416,6 +417,7 @@ class Evo {
 
       def remove(deaths: Long, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
         var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
+        println("LRpop"+population)
         var amountToRemove : Double = 0
         if(deaths <= population){
           amountToRemove = deaths
@@ -423,8 +425,15 @@ class Evo {
         else{
           amountToRemove = population
         }
-        
-        var netDiff = (amountToRemove.toDouble/_population).toDouble
+        var netDiff = 0.0
+        if (_population == 0.0)
+        {
+          netDiff = 0.0
+        }
+        else
+        {
+          netDiff = (amountToRemove.toDouble/_population).toDouble
+        }
         var newProportion : Double = 0.0
         var currentTuple : (Double, Double, Double) = (0.0, 0.0, 0.0)
         _traits(_traitReference(spTrait)).keys.foreach{ phenotype =>
@@ -470,6 +479,7 @@ class Evo {
       
       def remove(deaths: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
         var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        
         population = (population * (deaths)).toLong
         remove(population, spTrait, givenType)
         new ExpressionResult()
