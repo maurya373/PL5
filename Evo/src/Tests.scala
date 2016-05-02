@@ -22,14 +22,16 @@ object Tests extends Evo {
     new Species called 'Ents of 1000000 withCapacity 20000000
     new Species called 'Elves of 1000000 withCapacity 20000000
     
-    'Human.setAsPrey('Jaguar, 0.1)
-    'Human.setAsPrey('Rabbit, 1)
+    'Human.setAsPrey('Jaguar, 0.02)
+    'Human.setAsPrey('Rabbit, 0.1)
     'Human.setAsPrey('Plants, 2)
     
     
     showEcosystem
     simulate(5)
     showEcosystem
+    
+    
     
     // Finish Food Web Consumption
     // Finish Traits

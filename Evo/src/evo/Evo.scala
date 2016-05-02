@@ -158,7 +158,7 @@ class Evo {
 
     //species eat each other
     def predation() {
-      var updatedSpecies = Map[Symbol, Long]()
+      var updatedSpecies = Map[Symbol, Double]()
       // loop through all species
       EcoSystem.species.keys.foreach((sp) =>
 
@@ -172,7 +172,7 @@ class Evo {
             EcoSystem.species(sp).preyEvent(pr)._2.execute();
           } else {
 
-            var deathNum = (sp.preyEvent(pr)._1 * EcoSystem.species(sp)._population).toLong
+            var deathNum = (sp.preyEvent(pr)._1 * EcoSystem.species(sp)._population)
 
             if (updatedSpecies.contains(pr)) {
               var v = Math.max(updatedSpecies(pr) - deathNum, 0)
@@ -199,8 +199,8 @@ class Evo {
         if (sp.getTime() <= EcoSystem.worldTime) {
 
           //Get population of current species
-          var currentPop: Long = sp.getPopulation()
-          var newPop: Long = currentPop
+          var currentPop: Double = sp.getPopulation()
+          var newPop: Double = currentPop
           var phenoData: (Double, Double, Double) = null
           var sum: Double = 0.0
           var newTypeProportion: Double = 0.0
@@ -214,7 +214,7 @@ class Evo {
                 //Modify population to population of this trait
                 phenoData = sp._traits(sp._traitReference(spTrait)).apply(phenotype)
                 //phenoData tuple is of the form (Percentage of population that has it, Birthrate, Deathrate)
-                newPop += ((currentPop * phenoData._1) * (phenoData._2 - phenoData._3)).toLong
+                newPop += ((currentPop * phenoData._1) * (phenoData._2 - phenoData._3))
                 sum += phenoData._1 * (phenoData._2 - phenoData._3)
               }
 
@@ -278,7 +278,7 @@ class Evo {
       //properties of species
       var _name: Symbol = null
       var _time: Int = 0
-      var _population: Long = 0
+      var _population: Double = 0
 
       var _carryingcapacity: Long = Long.MaxValue
       
@@ -313,7 +313,7 @@ class Evo {
       }
 
       //setter for the _population property
-      def of(p: Long) = {
+      def of(p: Double) = {
         if (p > _carryingcapacity) { _population = _carryingcapacity }
         else { _population = p }
         this
@@ -345,12 +345,12 @@ class Evo {
       }
 
       //another setter for the _population property
-      def population(p: Long) {
+      def population(p: Double) {
         of(p)
       }
 
       //another setter for the _carryingcapacity property
-      def capacity(t: Int) = {
+      def capacity(t: Long) = {
         withCapacity(t)
       }
 
@@ -369,7 +369,7 @@ class Evo {
       //show all the data for the a particular species
       def showAll() {
         println("Name: " + _name)
-        println("Population: " + _population)
+        println("Population: " + _population.toLong)
         println("Start time: " + _time)
         println("Carrying Capacity: " + _carryingcapacity)
         if (!preyEvent.isEmpty) {
@@ -406,18 +406,18 @@ class Evo {
       }
       
       def update(updateBy : Double){
-        this._population = (this._population * updateBy).toLong
+        this._population = (this._population * updateBy)
       }
 
       //print name and population
       def showNumbers() {
-        println(_name + " Population: " + _population)
+        println(_name + " Population: " + _population.toLong)
       }
 
 
       def remove(deaths: Long, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
-        var amountToRemove : Long = 0
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
+        var amountToRemove : Double = 0
         if(deaths <= population){
           amountToRemove = deaths
         }
@@ -443,7 +443,7 @@ class Evo {
       }
       
       def add(births: Long, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
         
         var netDiff = (births.toDouble/_population).toDouble
         var newProportion : Double = 0.0
@@ -463,15 +463,15 @@ class Evo {
       }
       
       def add(births: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
-        population = (population * (births)).toLong
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
+        population = (population * (births))
         add(population, spTrait, givenType)
         new ExpressionResult()
       }
       
       def remove(deaths: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
-        population = (population * (deaths)).toLong
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
+        population = (population * (deaths))
         remove(population, spTrait, givenType)
         new ExpressionResult()
       }
