@@ -19,9 +19,9 @@ object Tests extends Evo {
     new Species called 'Plant of 5000000 withCapacity 50000000 enterAt 0
     new Species called 'Tree of 1000000 withCapacity 20000000 enterAt 0
     
-    // Add all taits, phenotypes, and growth rates
+    // Add all traits, phenotypes, and growth rates
     
-    'Human addTrait 'Height phenotype('Tall, (0.6, randomNumber, randomNumber)) phenotype ('Short, (0.4, 0.2, 0.15))
+    'Human addTrait 'Height phenotype('Tall, (0.6, 0.7367907864257373, 0.7235326850043826)) phenotype ('Short, (0.4, 0.2, 0.15))
     'Human addTrait 'EyeColor phenotype('Blue, (0.2, 0.6, 0.4)) phenotype ('Brown, (0.8, 0.1, 0.05))
     
     'Hawk addTrait 'Color phenotype('White, (0.68, 0.5, 0.2)) phenotype ('Brown, (0.22, 0.8, 0.3)) phenotype ('Black, (0.1, 0.8, 0.3))
@@ -109,8 +109,8 @@ object Tests extends Evo {
     
     // Define some random events to occur during the simulation
     
-    new RandomEvent called 'Earthquake withProbability .03 definedAs new Function (
-      (UpdateAllPopulationsBy(.6))  ::  // 60% of each species population remain
+    new RandomEvent called 'Earthquake withProbability .01 definedAs new Function (
+      (UpdateAllPopulationsBy(.75))  ::  // 75% of each species population remain
       If(('Panda getPopulation) < 10) (
            Print("PANDAS ARE EXTINCT") ::
            KillSpecies('Panda) ::
@@ -119,7 +119,7 @@ object Tests extends Evo {
       End
     )
     
-    new RandomEvent called 'Deforestation withProbability .1 definedAs new Function (
+    new RandomEvent called 'Deforestation withProbability .05 definedAs new Function (
       (UpdatePopulationBy('Tree, .8))  :: // 80% of trees remain 
       End
     )
@@ -133,7 +133,7 @@ object Tests extends Evo {
     
     // Define some deterministic events
     
-    new DeterministicEvent called 'EarthDay at 1000 definedAs new Function (
+    new DeterministicEvent called 'EarthDay at 500 definedAs new Function (
       Repeat (3) (
            UpdatePopulationBy('Tree, 1.1) ::
            UpdatePopulationBy('Plant, 1.05) ::
@@ -142,7 +142,19 @@ object Tests extends Evo {
       End
     )
     
-    simulate(10000)
+    //observe effects of predators of frogs and prey of frogs
+    new DeterministicEvent called 'FrogDeathStar at 100 definedAs new Function (
+      KillSpecies('Frog) :: 
+      End
+    )
+    
+    new GenericEvent called 'FrogExtinction definedAs new Function (
+      'Snake.setAsPrey('Snake, 0.01) ::
+      End
+    )
+    
+    
+    simulate(5)
     showEcosystem
     
   }

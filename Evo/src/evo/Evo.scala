@@ -645,6 +645,7 @@ class Evo {
       //run the event's code if the time is right
       def execute() {
         if (_time == EcoSystem.worldTime) {
+           println("************** " + _name + " occurred **************")
           var function = EcoSystem.functions(_name)
           function.get
         }
@@ -673,6 +674,7 @@ class Evo {
 
       //implement execute function from EventClass
       def execute() {
+         println("************** " + _name + " occurred **************")
         var function = EcoSystem.functions(_name)
         function.get
       }
@@ -744,7 +746,7 @@ class Evo {
       //do time-1 because loop is inclusive
       for (a <- 0 to time - 1) {
         println("Time Step " + (EcoSystem.worldTime + 1));
-        println(" _______________________ ");
+        println(" -------------------- ");
 
         //run every deterministic event
         EcoSystem.deterministicEvents.keys.foreach((ev) =>
