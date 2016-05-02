@@ -83,13 +83,9 @@ class Evo {
         var rand = scala.util.Random
         rand.nextDouble()
       }
-      
-      
 
       //UTIL METHODS
       //returns true if a species exists
-      
-      
       
       def speciesExists(name: Symbol) = {
         species.contains(name)
@@ -466,15 +462,15 @@ class Evo {
       }
       
       def add(births: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
-        population = (population * (births))
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        population = (population * (births)).toLong
         add(population, spTrait, givenType)
         new ExpressionResult()
       }
       
       def remove(deaths: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
-        population = (population * (deaths))
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        population = (population * (deaths)).toLong
         remove(population, spTrait, givenType)
         new ExpressionResult()
       }
@@ -504,7 +500,7 @@ class Evo {
         if (!EcoSystem.genericEvents.contains(EcoSystem.DoNothing)) {
           
           new GenericEvent called EcoSystem.DoNothing definedAs new Function (
-            Print("Nothing should happen") ::
+            //Print("Nothing should happen") ::
             End
           )
         }
@@ -514,7 +510,7 @@ class Evo {
     
     def setAsPrey(s: Symbol, consumption: Double, ev: Symbol): Expression = {
         if (!EcoSystem.species.contains(s)) {
-           println(s + " does not exist *****")
+           //println(s + " does not exist *****")
         }
         else {
            preyEvent += (s -> (consumption, ev))
@@ -524,7 +520,7 @@ class Evo {
     
     def setAsPredator(s: Symbol, consumption: Double): Expression = {
         if (!EcoSystem.species.contains(s)) {
-           println(s + " does not exist *****")
+           //println(s + " does not exist *****")
         }
         else {
            EcoSystem.species(s).setAsPrey(_name, consumption)
@@ -534,7 +530,7 @@ class Evo {
     
     def setAsPredator(s: Symbol, consumption: Double, ev: Symbol): Expression = {
         if (!EcoSystem.species.contains(s)) {
-           println(s + " does not exist *****")
+           //println(s + " does not exist *****")
         }
         else {
            EcoSystem.species(s).setAsPrey(_name, consumption, ev)
@@ -871,65 +867,3 @@ class Evo {
 
 
 }
-  
-  /********* tests ***********/
-
-
-
-  /*def main(args: Array[String]) = {
-    //example of creating Species
-    new Species called 'Pig of 1000 birthrate .4 deathrate .3
-    new Species called 'Frog of 100 birthrate 0 deathrate 0 at 0 carryingcapacity 5000
-    new Species called 'Fly of 1000 birthrate 0 deathrate 0 at 0
-    new Species called 'Cricket of 500 birthrate 0 deathrate 0 at 0
-
-    //set food web relations between species 
-    'Frog setAsPrey ('Fly, 5)
-    'Frog setAsPrey ('Cricket, 2)
-
-    //example of defining deterministic event
-    new DeterministicEvent called 'Tornado at 4 definedAs new Function (
-      Print("Starting it") ::
-      (new Species called 'Pog of 1000 birthrate .4 deathrate .3) ::
-      Print("goo") ::
-      If(('Pig getPopulation) < 2000) (
-           UpdateAllPopulationsTo(5000) ::
-           Print("updated all populations to 5000") ::
-           End
-      ) ::
-      If(1 < 2) (
-           UpdatePopulation('Pig, 696969) ::
-           Print("updated all pigs to 696969") ::
-           End
-      ) ::
-      If(('Pig getPopulation) > ('Frog getPopulation)) (
-           UpdateAllPopulationsBy(.2) ::
-           Print("updated all growth by .2") ::
-           End
-      ) ::
-      Step(4)(
-        Print("ok") ::
-        If(('Pig getPopulation) < 2) (
-           Print("watermelon") ::
-           End
-        ) ::
-        End
-      ) ::
-      End
-    )
-
-    //example of defining random event
-    new RandomEvent called 'Wipeout withProbability .5 definedAs new Function (
-      Print("WIPEOUT!!") ::
-      End
-    )
-
-    //run the ecosystem - print the states before and after
-    showEcosystem
-    simulate(5)
-    showEcosystem
-
-    println("---")
-  }
-
-}*/

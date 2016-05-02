@@ -11,28 +11,28 @@ object Tests extends Evo {
     new Species called 'Jaguar of 500 withCapacity 10000000 enterAt 0
     new Species called 'Snake of 7500 withCapacity 10000000 enterAt 0
     new Species called 'Spider of 100000 withCapacity 10000000 enterAt 0
-    new Species called 'Insects of 100000000 withCapacity 5000000000L enterAt 0
+    new Species called 'Insect of 100000000 withCapacity 5000000000L enterAt 0
     new Species called 'Frog of 10000 withCapacity 10000000 enterAt 0
     new Species called 'Rabbit of 10000 withCapacity 10000000 enterAt 0
     new Species called 'Panda of 100 withCapacity 100000 enterAt 0
     new Species called 'Deer of 100000 withCapacity 10000000 enterAt 0
-    new Species called 'Plants of 5000000 withCapacity 50000000 enterAt 0
-    new Species called 'Trees of 1000000 withCapacity 20000000 enterAt 0
+    new Species called 'Plant of 5000000 withCapacity 50000000 enterAt 0
+    new Species called 'Tree of 1000000 withCapacity 20000000 enterAt 0
     
     // Add all taits, phenotypes, and growth rates
     
     'Human addTrait 'Height phenotype('Tall, (0.6, randomNumber, randomNumber)) phenotype ('Short, (0.4, 0.2, 0.15))
     'Human addTrait 'EyeColor phenotype('Blue, (0.2, 0.6, 0.4)) phenotype ('Brown, (0.8, 0.1, 0.05))
     
-    'Hawk addTrait 'Color phenotype('White, (0.78, 0.5, 0.2)) phenotype ('Brown, (0.22, 0.8, 0.3))
+    'Hawk addTrait 'Color phenotype('White, (0.68, 0.5, 0.2)) phenotype ('Brown, (0.22, 0.8, 0.3)) phenotype ('Black, (0.1, 0.8, 0.3))
     
     'Jaguar addTrait 'TailSize phenotype('Long, (0.5, 0.3, 0.1)) phenotype ('Short, (0.5, 0.2, 0.15))
     
-    'Snake addTrait 'Appearance phenotype('Striped, (0.2, 0.3, 0.1)) phenotype ('Solid, (0.8, 0.2, 0.15))
+    'Snake addTrait 'Appearance phenotype('Striped, (0.2, 0.3, 0.1)) phenotype ('Solid, (0.6, 0.2, 0.15)) phenotype('Pattern, (0.2, 0.3, 0.1))
     
     'Spider addTrait 'Venomous phenotype('Lethal, (0.9, 0.3, 0.1)) phenotype ('Nonlethal, (0.1, 0.2, 0.15))
     
-    'Insects addTrait 'Exoskeleton phenotype('Yes, (0.75, 0.3, 0.1)) phenotype ('No, (0.25, 0.2, 0.15))
+    'Insect addTrait 'Exoskeleton phenotype('Yes, (0.75, 0.3, 0.1)) phenotype ('No, (0.25, 0.2, 0.15))
     
     'Frog addTrait 'Habitat phenotype('Water, (0.68, 0.3, 0.1)) phenotype ('Land, (0.32, 0.2, 0.15))
     
@@ -44,14 +44,14 @@ object Tests extends Evo {
     
     'Plant addTrait 'Poisonous phenotype('Yes, (0.11, 0.3, 0.1)) phenotype ('No, (0.89, 0.2, 0.15))
     
-    'Tree addTrait 'Height phenotype('Tall, (0.65, 0.3, 0.1)) phenotype ('Short, (0.35, 0.2, 0.15))
+    'Tree addTrait 'Height phenotype('Tall, (0.3, 0.3, 0.1)) phenotype('Medium, (0.5, 0.3, 0.1)) phenotype ('Short, (0.2, 0.2, 0.15))
     
     
     // All predator/prey relationships
     
     'Human.setAsPrey('Jaguar, 0.02)
     'Human.setAsPrey('Rabbit, 0.1)
-    'Human.setAsPrey('Plants, 2)
+    'Human.setAsPrey('Plant, 2)
     
     'Hawk.setAsPrey('Snake, 1)
     'Hawk.setAsPrey('Frog, 1)
@@ -66,10 +66,10 @@ object Tests extends Evo {
     'Snake.setAsPrey('Frog, 3)
     'Snake.setAsPrey('Rabbit, 1)
     
-    'Spider.setAsPrey('Insects, 10)
-    'Spider.setAsPrey('Plants, 1)
+    'Spider.setAsPrey('Insect, 10)
+    'Spider.setAsPrey('Plant, 1)
     
-    'Insect.setAsPrey('Plants, 1)
+    'Insect.setAsPrey('Plant, 1)
     'Insect.setAsPrey('Tree, 1)
     
     'Frog.setAsPrey('Snake, 1)
@@ -86,18 +86,33 @@ object Tests extends Evo {
     'Tree.setAsPredator('Deer, 0.005)
     
     
+    // Add some mutations
+    
+    'Hawk updateMutation(0.0001, .01)
+    'Snake updateMutation(0.0002, .03)
+    'Plant updateMutation(0.0002, .02)
+    
+    
     // Show initial species pool
     showEcosystem
     
-    // Define some random events to occur during the simulation
     
-    showEcosystem
-    simulate(5)
-    showEcosystem
+    // Define some generic event
+    
+    new GenericEvent called 'RabbitExtinction definedAs new Function (
+      'Human.setAsPrey('Deer, 0.5) ::
+      End
+    )
+    
+    'Human.setAsPrey('Rabbit, 0.1, 'RabbitExtinction)
+    
+    
+    // Define some random events to occur during the simulation
     
     new RandomEvent called 'Earthquake withProbability .03 definedAs new Function (
       (UpdateAllPopulationsBy(.6))  ::  // 60% of each species population remain
       If(('Panda getPopulation) < 10) (
+           Print("PANDAS ARE EXTINCT") ::
            KillSpecies('Panda) ::
            End
       ) ::      
@@ -111,6 +126,7 @@ object Tests extends Evo {
     
     new RandomEvent called 'Flood withProbability .05 definedAs new Function (
       (UpdateAllPopulationsBy(.9))  ::  // 90% of the population remains
+      'Human.remove(.2, 'Height, 'Short) ::  // 20% of the short humans die during the flood
       End
     )
     
@@ -118,54 +134,16 @@ object Tests extends Evo {
     // Define some deterministic events
     
     new DeterministicEvent called 'EarthDay at 1000 definedAs new Function (
-      ('Jans remove (10, 'EyeColor, 'Blue)) ::
-      ('Jans updateMutation(0.5, 0.3))::
-      If(('Dinosaurs getPopulation) < 500) (
-           KillSpecies('Dinosaurs) ::
+      Repeat (3) (
+           UpdatePopulationBy('Tree, 1.1) ::
+           UpdatePopulationBy('Plant, 1.05) ::
            End
       ) ::      
-      
       End
     )
     
-    
-    
-    
-/*
-    'Jans remove(0.2, 'EyeColor, 'Blue)
-    
-    'Jans addMutation
-    
-    //example of defining deterministic event
-    new DeterministicEvent called 'Earthquake at 3 definedAs new Function (
-      ('Jans remove (10, 'EyeColor, 'Blue)) ::
-      ('Jans updateMutation(0.5, 0.3))::
-      If(('Dinosaurs getPopulation) < 500) (
-           KillSpecies('Dinosaurs) ::
-           End
-      ) ::      
-      
-      End
-    )
-    
-    //example of defining a random event
-    new RandomEvent called 'Meteor withProbability .1 definedAs new Function (
-      'Jans.capacity(80000) ::
-      KillSpecies('Dinosaurs) ::
-      Print("BOOM!") ::
-      End
-    )
-    
+    simulate(10000)
     showEcosystem
-
-    simulate(10)
-    showEcosystem
-
-*/
     
-    
-    
-
   }
-
 }
