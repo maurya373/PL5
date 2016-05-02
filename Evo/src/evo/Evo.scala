@@ -369,9 +369,9 @@ class Evo {
       //show all the data for the a particular species
       def showAll() {
         println("Name: " + _name)
-        println("Population: " + _population.toString)
+        println("Population: " + _population.toLong)
         println("Start time: " + _time)
-        println("Carrying Capacity: " + _carryingcapacity.toString())
+        println("Carrying Capacity: " + _carryingcapacity.toLong)
         if (!preyEvent.isEmpty) {
           print("One " + _name + " consumes ")
           var count: Int = 0
@@ -417,7 +417,6 @@ class Evo {
 
       def remove(deaths: Long, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
         var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
-        println("LRpop"+population)
         var amountToRemove : Double = 0
         if(deaths <= population){
           amountToRemove = deaths
