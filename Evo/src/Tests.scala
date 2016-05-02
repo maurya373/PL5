@@ -4,7 +4,6 @@ object Tests extends Evo {
   
   def main(args: Array[String]) = {
   
-    
     // Create All Species
     
     new Species called 'Human of 2000 withCapacity 10000000 enterAt 0
@@ -22,7 +21,7 @@ object Tests extends Evo {
     
     // Add all taits, phenotypes, and growth rates
     
-    'Human addTrait 'Height phenotype('Tall, (0.6, 0.3, 0.1)) phenotype ('Short, (0.4, 0.2, 0.15))
+    'Human addTrait 'Height phenotype('Tall, (0.6, randomNumber, randomNumber)) phenotype ('Short, (0.4, 0.2, 0.15))
     'Human addTrait 'EyeColor phenotype('Blue, (0.2, 0.6, 0.4)) phenotype ('Brown, (0.8, 0.1, 0.05))
     
     'Hawk addTrait 'Color phenotype('White, (0.78, 0.5, 0.2)) phenotype ('Brown, (0.22, 0.8, 0.3))
@@ -50,9 +49,9 @@ object Tests extends Evo {
     
     // All predator/prey relationships
     
-    'Human.setAsPrey('Jaguar, 0.05)
-    'Human.setAsPrey('Rabbit, 1)
-    'Human.setAsPrey('Plant, 5)
+    'Human.setAsPrey('Jaguar, 0.02)
+    'Human.setAsPrey('Rabbit, 0.1)
+    'Human.setAsPrey('Plants, 2)
     
     'Hawk.setAsPrey('Snake, 1)
     'Hawk.setAsPrey('Frog, 1)
@@ -92,6 +91,10 @@ object Tests extends Evo {
     
     // Define some random events to occur during the simulation
     
+    showEcosystem
+    simulate(5)
+    showEcosystem
+    
     new RandomEvent called 'Earthquake withProbability .03 definedAs new Function (
       (UpdateAllPopulationsBy(.6))  ::  // 60% of each species population remain
       If(('Panda getPopulation) < 10) (
@@ -114,7 +117,7 @@ object Tests extends Evo {
     
     // Define some deterministic events
     
-    new DeterministicEvent called 'EarthDay at 2000 definedAs new Function (
+    new DeterministicEvent called 'EarthDay at 1000 definedAs new Function (
       ('Jans remove (10, 'EyeColor, 'Blue)) ::
       ('Jans updateMutation(0.5, 0.3))::
       If(('Dinosaurs getPopulation) < 500) (
