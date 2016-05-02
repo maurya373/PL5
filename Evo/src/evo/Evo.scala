@@ -424,7 +424,14 @@ class Evo {
           amountToRemove = population
         }
         
-        var netDiff = (amountToRemove.toDouble/_population).toDouble
+        var netDiff = 0.0
+        if(_population == 0.0){
+          netDiff = 0.0
+        }
+        else{
+          netDiff = (amountToRemove.toDouble/_population).toDouble
+        }
+        
         var newProportion : Double = 0.0
         var currentTuple : (Double, Double, Double) = (0.0, 0.0, 0.0)
         _traits(_traitReference(spTrait)).keys.foreach{ phenotype =>
@@ -444,7 +451,15 @@ class Evo {
       def add(births: Long, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
         var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
         
-        var netDiff = (births.toDouble/_population).toDouble
+        var netDiff = 0.0
+        if(_population == 0.0){
+          netDiff = 0.0
+        }
+        else{
+          netDiff = (births.toDouble/_population).toDouble
+        }
+        
+        
         var newProportion : Double = 0.0
         var currentTuple : (Double, Double, Double) = (0.0, 0.0, 0.0)
         _traits(_traitReference(spTrait)).keys.foreach{ phenotype =>
@@ -462,17 +477,28 @@ class Evo {
       }
       
       def add(births: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
-        population = (population * (births)).toLong
-        add(population, spTrait, givenType)
-        new ExpressionResult()
+        if(_population == 0.0){
+          new ExpressionResult()
+        }
+        else{
+          var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+          population = (population * (births)).toLong
+          add(population, spTrait, givenType)
+          new ExpressionResult()  
+        }
+        
       }
       
       def remove(deaths: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
-        population = (population * (deaths)).toLong
-        remove(population, spTrait, givenType)
-        new ExpressionResult()
+        if(_population == 0.0){
+          new ExpressionResult
+        }
+        else{
+          var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+          population = (population * (deaths)).toLong
+          remove(population, spTrait, givenType)
+          new ExpressionResult()
+        }
       }
       
       
