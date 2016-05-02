@@ -31,7 +31,7 @@ object Tests extends Evo {
     
     
     new RandomEvent called 'Earthquake withProbability .005 definedAs new Function (
-      (UpdatePopulation('Panda, 10)  ::
+      (UpdatePopulation('Panda, 10))  ::
       ('Jans updateMutation(0.5, 0.3))::
       If(('Dinosaurs getPopulation) < 500) (
            KillSpecies('Dinosaurs) ::
