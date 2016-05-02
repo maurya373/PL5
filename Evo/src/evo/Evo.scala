@@ -85,6 +85,9 @@ class Evo {
 
       //UTIL METHODS
       //returns true if a species exists
+      
+      
+      
       def speciesExists(name: Symbol) = {
         species.contains(name)
       }
@@ -93,8 +96,15 @@ class Evo {
         species.keys.foreach((sp) =>
           species(sp).population(i))
       }
+      
+      def multiplyAllPopulationsByRate(d: Double) {
+        species.keys.foreach((sp) =>
+          species(sp).update(d))
+      }
 
-
+      def multiplyPopulationByRate(s: Symbol, d: Double) {
+        s.update(d)
+      }
 
       def killSpecies(s: Symbol) {
         s.population(0)
@@ -388,6 +398,10 @@ class Evo {
             }
           }
         }
+      }
+      
+      def update(updateBy : Double){
+        this._population = (this._population * updateBy).toLong
       }
 
       //print name and population
@@ -809,6 +823,14 @@ class Evo {
     }
     object UpdateAllPopulationsTo {
       def apply(i: Int) = new UpdateAllPopulationsToClass(i)
+    }
+    
+    //Evo - updates a population by a specific growth percentage
+    class UpdatePopulationByClass(s: Symbol, d: Double) extends Expression {
+      EcoSystem.multiplyPopulationByRate(s, d)
+    }
+    object UpdatePopulationBy {
+      def apply(s: Symbol, d: Double) = new UpdatePopulationByClass(s, d)
     }
 
     

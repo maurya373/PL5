@@ -7,7 +7,7 @@ object Tests extends Evo {
     
     // ************** Large Program
     
-    new Species called 'Human of 200 withCapacity 10000000
+    new Species called 'Human of 2000 withCapacity 10000000
     new Species called 'Hawk of 2000 withCapacity 10000000
     new Species called 'Jaguar of 500 withCapacity 10000000
     new Species called 'Python of 7500 withCapacity 10000000
@@ -24,8 +24,22 @@ object Tests extends Evo {
     
     'Human.setAsPrey('Jaguar, 1)
     'Human.setAsPrey('Rabbit, 1)
-    'Human.setAsPrey('Rabbit, 1)
+    'Human.setAsPrey('Plants, 2)
     
+    // Finish Food Web Consumption
+    // Finish Traits
+    
+    
+    new RandomEvent called 'Earthquake withProbability .005 definedAs new Function (
+      (UpdatePopulation('Panda, 10)  ::
+      ('Jans updateMutation(0.5, 0.3))::
+      If(('Dinosaurs getPopulation) < 500) (
+           KillSpecies('Dinosaurs) ::
+           End
+      ) ::      
+      
+      End
+    )
     
     
     /*
