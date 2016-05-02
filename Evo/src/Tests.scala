@@ -19,16 +19,16 @@ object Tests extends Evo {
     new Species called 'Plant of 5000000 withCapacity 50000000 enterAt 0
     new Species called 'Tree of 1000000 withCapacity 20000000 enterAt 0
     
-    // Add all taits, phenotypes, and growth rates
+    // Add all traits, phenotypes, and growth rates
     
-    'Human addTrait 'Height phenotype('Tall, (0.6, randomNumber, randomNumber)) phenotype ('Short, (0.4, 0.2, 0.15))
+    'Human addTrait 'Height phenotype('Tall, (0.6, 0.7367907864257373, 0.7235326850043826)) phenotype ('Short, (0.4, 0.2, 0.15))
     'Human addTrait 'EyeColor phenotype('Blue, (0.2, 0.6, 0.4)) phenotype ('Brown, (0.8, 0.1, 0.05))
     
-    'Hawk addTrait 'Color phenotype('White, (0.78, 0.5, 0.2)) phenotype ('Brown, (0.22, 0.8, 0.3))
+    'Hawk addTrait 'Color phenotype('White, (0.68, 0.5, 0.2)) phenotype ('Brown, (0.22, 0.8, 0.3)) phenotype ('Black, (0.1, 0.8, 0.3))
     
     'Jaguar addTrait 'TailSize phenotype('Long, (0.5, 0.3, 0.1)) phenotype ('Short, (0.5, 0.2, 0.15))
     
-    'Snake addTrait 'Appearance phenotype('Striped, (0.2, 0.3, 0.1)) phenotype ('Solid, (0.8, 0.2, 0.15))
+    'Snake addTrait 'Appearance phenotype('Striped, (0.2, 0.3, 0.1)) phenotype ('Solid, (0.6, 0.2, 0.15)) phenotype('Pattern, (0.2, 0.3, 0.1))
     
     'Spider addTrait 'Venomous phenotype('Lethal, (0.9, 0.3, 0.1)) phenotype ('Nonlethal, (0.1, 0.2, 0.15))
     
@@ -44,7 +44,7 @@ object Tests extends Evo {
     
     'Plant addTrait 'Poisonous phenotype('Yes, (0.11, 0.3, 0.1)) phenotype ('No, (0.89, 0.2, 0.15))
     
-    'Tree addTrait 'Height phenotype('Tall, (0.65, 0.3, 0.1)) phenotype ('Short, (0.35, 0.2, 0.15))
+    'Tree addTrait 'Height phenotype('Tall, (0.3, 0.3, 0.1)) phenotype('Medium, (0.5, 0.3, 0.1)) phenotype ('Short, (0.2, 0.2, 0.15))
     
     
     // All predator/prey relationships
@@ -86,86 +86,82 @@ object Tests extends Evo {
     'Tree.setAsPredator('Deer, 0.005)
     
     
+    // Add some mutations
+    
+    'Hawk updateMutation(0.0001, .01)
+    'Snake updateMutation(0.0002, .03)
+    'Plant updateMutation(0.0002, .02)
+    
+    
     // Show initial species pool
     showEcosystem
     
+    
+
+    // Define some generic event
+
+    
+    new GenericEvent called 'RabbitExtinction definedAs new Function (
+      'Human.setAsPrey('Deer, 0.5) ::
+      End
+    )
+    
+    'Human.setAsPrey('Rabbit, 0.1, 'RabbitExtinction)
+    
+    
     // Define some random events to occur during the simulation
     
-    showEcosystem
-    simulate(500)
-    showEcosystem
-    
-    new RandomEvent called 'Earthquake withProbability .03 definedAs new Function (
-      (UpdateAllPopulationsBy(.6))  ::  // 60% of each species population remain
+    new RandomEvent called 'Earthquake withProbability .01 definedAs new Function (
+      (UpdateAllPopulationsBy(.75))  ::  // 75% of each species population remain
       If(('Panda getPopulation) < 10) (
+           Print("PANDAS ARE EXTINCT") ::
            KillSpecies('Panda) ::
            End
       ) ::      
       End
     )
     
-    new RandomEvent called 'Deforestation withProbability .1 definedAs new Function (
-      (UpdatePopulationBy('Tree, .8))  :: // 80% of Tree remain 
+
+    new RandomEvent called 'Deforestation withProbability .05 definedAs new Function (
+      (UpdatePopulationBy('Tree, .8))  :: // 80% of trees remain 
+
       End
     )
     
     new RandomEvent called 'Flood withProbability .05 definedAs new Function (
       (UpdateAllPopulationsBy(.9))  ::  // 90% of the population remains
+      'Human.remove(.2, 'Height, 'Short) ::  // 20% of the short humans die during the flood
       End
     )
     
     
     // Define some deterministic events
     
-    new DeterministicEvent called 'EarthDay at 1000 definedAs new Function (
-      ('Tree add(10, 'EyeColor, 'Blue)) ::
-      ('Jans updateMutation(0.5, 0.3))::
-      If(('Dinosaurs getPopulation) < 500) (
-           KillSpecies('Dinosaurs) ::
+
+    new DeterministicEvent called 'EarthDay at 500 definedAs new Function (
+      Repeat (3) (
+           UpdatePopulationBy('Tree, 1.1) ::
+           UpdatePopulationBy('Plant, 1.05) ::
+
            End
       ) ::      
-      
+      End
+    )
+    
+    //observe effects of predators of frogs and prey of frogs
+    new DeterministicEvent called 'FrogDeathStar at 100 definedAs new Function (
+      KillSpecies('Frog) :: 
+      End
+    )
+    
+    new GenericEvent called 'FrogExtinction definedAs new Function (
+      'Snake.setAsPrey('Snake, 0.01) ::
       End
     )
     
     
-    
-    
-/*
-    'Jans remove(0.2, 'EyeColor, 'Blue)
-    
-    'Jans addMutation
-    
-    //example of defining deterministic event
-    new DeterministicEvent called 'Earthquake at 3 definedAs new Function (
-      ('Jans remove (10, 'EyeColor, 'Blue)) ::
-      ('Jans updateMutation(0.5, 0.3))::
-      If(('Dinosaurs getPopulation) < 500) (
-           KillSpecies('Dinosaurs) ::
-           End
-      ) ::      
-      
-      End
-    )
-    
-    //example of defining a random event
-    new RandomEvent called 'Meteor withProbability .1 definedAs new Function (
-      'Jans.capacity(80000) ::
-      KillSpecies('Dinosaurs) ::
-      Print("BOOM!") ::
-      End
-    )
-    
+    simulate(5)
     showEcosystem
-
-    simulate(10)
-    showEcosystem
-
-*/
     
-    
-    
-
   }
-
 }
