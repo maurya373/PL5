@@ -27,6 +27,7 @@ object Tests extends Evo {
     'Human.setAsPrey('Plants, 2)
     
     
+    
     showEcosystem
     simulate(5)
     showEcosystem
@@ -37,16 +38,16 @@ object Tests extends Evo {
     // Finish Traits
     
     
-//    new RandomEvent called 'Earthquake withProbability .005 definedAs new Function (
-//      (UpdatePopulation('Panda, 10))  ::
-//      ('Jans updateMutation(0.5, 0.3))::
-//      If(('Dinosaurs getPopulation) < 500) (
-//           KillSpecies('Dinosaurs) ::
-//           End
-//      ) ::      
-//      
-//      End
-//    )
+    new RandomEvent called 'Earthquake withProbability .005 definedAs new Function (
+      (UpdatePopulation('Panda, 10))  ::
+      ('Jans updateMutation(0.5, 0.3))::
+      If(('Dinosaurs getPopulation) < 500) (
+           KillSpecies('Dinosaurs) ::
+           End
+      ) ::      
+      
+      End
+    )
     
     
     /*

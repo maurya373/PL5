@@ -1,6 +1,7 @@
 package evo {
 import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
 import scala.math.abs
+import scala.util.{Try, Success, Failure}
 class Evo {
 
     /********* Global States ***********/
@@ -82,6 +83,8 @@ class Evo {
         var rand = scala.util.Random
         rand.nextDouble()
       }
+      
+      
 
       //UTIL METHODS
       //returns true if a species exists
@@ -733,6 +736,7 @@ class Evo {
     implicit def speciesString(name: Symbol): Species = {
       EcoSystem.getSpecies(name)
     }
+    
 
     /********* Simulate ***********/
     def simulate(time: Int) = {
@@ -852,8 +856,11 @@ class Evo {
     def showEcosystem = EcoSystem.showEcosystem()
 
     def End = Nil
+    
+    def randomNumber = EcoSystem.getRandomValue()
 
   }
+
 
 }
   
