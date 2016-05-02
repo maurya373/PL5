@@ -1,6 +1,6 @@
 package evo {
 import scala.collection.mutable.{ Buffer, ArrayBuffer, Map }
-
+import scala.math.abs
 class Evo {
 
     /********* Global States ***********/
@@ -246,14 +246,19 @@ class Evo {
           phenoMap.keys.foreach { j =>
             accumulator += phenoMap(j)._1
           }
-          if (accumulator != 1.0) {
+          var epsilon: Double = 1.0
+          if (!(~=(accumulator, 1.0, 0.0001))) {
             println("\n\n-------------------------------------\n"+"WARNING")
             println("Proportions of trait " + currentTrait + " in species " + currentSpecies._name + " do not sum to 1.")
+            println("Accumulator "+abs(accumulator-1))
             println("-------------------------------------\n\n")
           }
         }
       }
-
+    }
+    
+    def ~=(x: Double, y: Double, precision: Double) = {
+    	if ((x - y).abs < precision) true else false
     }
 
     /********* Classes ***********/
