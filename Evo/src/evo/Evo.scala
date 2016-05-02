@@ -222,13 +222,14 @@ class Evo {
 
     }
     
-    def addMutations() {
+    def addMutations(): ExpressionResult = {
       EcoSystem.species.keys.foreach((sp) =>
         if (sp.getTime() <= EcoSystem.worldTime)
         {
           sp.addMutation()
         }
       )
+      new ExpressionResult()
     }
     
     
@@ -395,7 +396,7 @@ class Evo {
       }
 
 
-      def remove(deaths: Long, spTrait: Symbol, givenType: Symbol){
+      def remove(deaths: Long, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
         var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
         var amountToRemove : Long = 0
         if(deaths <= population){
@@ -419,9 +420,10 @@ class Evo {
           _traits(_traitReference(spTrait))(phenotype) = (newProportion, currentTuple._2, currentTuple._3)
         }
         _population -= amountToRemove
+        new ExpressionResult()
       }
       
-      def add(births: Long, spTrait: Symbol, givenType: Symbol){
+      def add(births: Long, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
         var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
         
         var netDiff = (births.toDouble/_population).toDouble
@@ -438,28 +440,32 @@ class Evo {
           _traits(_traitReference(spTrait))(phenotype) = (newProportion, currentTuple._2, currentTuple._3)
         }
         _population += births
+        new ExpressionResult()
       }
       
-      def add(births: Double, spTrait: Symbol, givenType: Symbol){
+      def add(births: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
         var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
         population = (population * (births)).toLong
         add(population, spTrait, givenType)
+        new ExpressionResult()
       }
       
-      def remove(deaths: Double, spTrait: Symbol, givenType: Symbol){
+      def remove(deaths: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
         var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
         population = (population * (deaths)).toLong
         remove(population, spTrait, givenType)
+        new ExpressionResult()
       }
       
       
-      def updateMutation(probMutation: Double, propOccurence: Double) {
+      def updateMutation(probMutation: Double, propOccurence: Double): ExpressionResult =  {
         _probMutation = probMutation
         _mutationProportion = propOccurence
+        new ExpressionResult()
       }
 
       
-       def addMutation() {
+       def addMutation(): ExpressionResult = {
         var death = EcoSystem.getRandomValue()
         var growth = EcoSystem.getRandomValue() * EcoSystem.getRandomValue()
         if (EcoSystem.getRandomValue() <= _probMutation)
@@ -468,6 +474,7 @@ class Evo {
           phenotype(Symbol("With Mutation" + _mutationNum.toString()), (_mutationProportion, growth, death)) phenotype (Symbol("Without Mutation" + _mutationNum.toString()), (1.0 - _mutationProportion, 0.0, 0.0))
           _mutationNum = _mutationNum + 1
         }
+        new ExpressionResult()
       }
 
       def setAsPrey(s: Symbol, consumption: Long) {
@@ -744,6 +751,8 @@ class Evo {
         println(); println()
       }
     }
+    
+    class ExpressionResult extends Expression
 
     /********* EVO Language ***********/
     //Wrapper class to hold function of a method (uses call-by-name)
@@ -761,7 +770,7 @@ class Evo {
     }
 
     //Evo - executes the expressions i number of times, for loop
-    class StepClass(i: Int)(e: => List[Expression]) extends Expression {
+    class RepeatClass(i: Int)(e: => List[Expression]) extends Expression {
       var counter = 0
       while (counter < i) {
         e
@@ -769,8 +778,8 @@ class Evo {
       }
     }
     //used to call Step without new keyword
-    object Step {
-      def apply(i: Int)(e: => List[Expression]) = new StepClass(i)(e)
+    object Repeat {
+      def apply(i: Int)(e: => List[Expression]) = new RepeatClass(i)(e)
     }
 
     //Evo - prints the string str

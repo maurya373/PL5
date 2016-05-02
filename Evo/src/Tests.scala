@@ -16,12 +16,13 @@ object Tests extends Evo {
     //remove(organisms, trait, phenotype)
     //'Jans remove(0.2, 'EyeColor, 'Blue)
     
-    'Jans updateMutation(0.5, 0.3)
-    'Jans addMutation
+    
+//    'Jans addMutation
     
     //example of defining deterministic event
     new DeterministicEvent called 'Earthquake at 3 definedAs new Function (
-      
+      ('Jans remove (10, 'EyeColor, 'Blue)) ::
+      ('Jans updateMutation(0.5, 0.3))::
       If(('Dinosaurs getPopulation) < 500) (
            KillSpecies('Dinosaurs) ::
            End
