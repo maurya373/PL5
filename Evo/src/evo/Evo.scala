@@ -474,10 +474,10 @@ class Evo {
           phenotype(Symbol("With Mutation" + _mutationNum.toString()), (_mutationProportion, growth, death)) phenotype (Symbol("Without Mutation" + _mutationNum.toString()), (1.0 - _mutationProportion, 0.0, 0.0))
           _mutationNum = _mutationNum + 1
         }
-        new ExpressionResult()
+        new ExpressionResult
       }
 
-      def setAsPrey(s: Symbol, consumption: Long) {
+      def setAsPrey(s: Symbol, consumption: Long): Expression = {
         
         if (!EcoSystem.genericEvents.contains(EcoSystem.DoNothing)) {
           
@@ -490,31 +490,34 @@ class Evo {
         setAsPrey(s, consumption, EcoSystem.DoNothing)
     }
     
-    def setAsPrey(s: Symbol, consumption: Long, ev: Symbol) {
+    def setAsPrey(s: Symbol, consumption: Long, ev: Symbol): Expression = {
         if (!EcoSystem.species.contains(s)) {
            println(s + " does not exist *****")
         }
         else {
            preyEvent += (s -> (consumption, ev))
         }
+        new ExpressionResult
     }
     
-    def setAsPredator(s: Symbol, consumption: Long) {
+    def setAsPredator(s: Symbol, consumption: Long): Expression = {
         if (!EcoSystem.species.contains(s)) {
            println(s + " does not exist *****")
         }
         else {
            EcoSystem.species(s).setAsPrey(_name, consumption)
         }
+        new ExpressionResult
     }
     
-    def setAsPredator(s: Symbol, consumption: Long, ev: Symbol) {
+    def setAsPredator(s: Symbol, consumption: Long, ev: Symbol): Expression = {
         if (!EcoSystem.species.contains(s)) {
            println(s + " does not exist *****")
         }
         else {
            EcoSystem.species(s).setAsPrey(_name, consumption, ev)
         }
+        new ExpressionResult
     }
 
       //
