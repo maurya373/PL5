@@ -10,29 +10,52 @@ object Tests extends Evo {
     new Species called 'Human of 2000 withCapacity 10000000
     new Species called 'Hawk of 2000 withCapacity 10000000
     new Species called 'Jaguar of 500 withCapacity 10000000
-    new Species called 'Python of 7500 withCapacity 10000000
+    new Species called 'Snake of 7500 withCapacity 10000000
     new Species called 'Spider of 100000 withCapacity 10000000
+    new Species called 'Insects of 100000000 withCapacity 5000000000L
     new Species called 'Frog of 10000 withCapacity 10000000
     new Species called 'Rabbit of 10000 withCapacity 10000000
-    new Species called 'Panda of 50 withCapacity 100000
+    new Species called 'Panda of 100 withCapacity 100000
+    new Species called 'Deer of 100000 withCapacity 10000000
     new Species called 'Plants of 5000000 withCapacity 50000000
     new Species called 'Trees of 1000000 withCapacity 20000000
     
-    new Species called 'Orcs of 1000000 withCapacity 20000000 
-    new Species called 'Ents of 1000000 withCapacity 20000000
-    new Species called 'Elves of 1000000 withCapacity 20000000
     
     'Human.setAsPrey('Jaguar, 1)
     'Human.setAsPrey('Rabbit, 1)
-    'Human.setAsPrey('Plants, 2)
+    'Human.setAsPrey('Plants, 5)
+    
+    'Hawk.setAsPrey('Snake, 1)
+    'Hawk.setAsPrey('Frog, 1)
+    'Hawk.setAsPrey('Rabbit, 1)
+    
+    'Jaguar.setAsPrey('Human, 1)
+    'Jaguar.setAsPrey('Rabbit, 3)
+    'Jaguar.setAsPrey('Panda, 1)
+    'Jaguar.setAsPrey('Deer, 1)
+    
+    'Snake.setAsPrey('Spider, 10)
+    'Snake.setAsPrey('Frog, 3)
+    'Snake.setAsPrey('Rabbit, 1)
+    
+    'Spider.setAsPrey('Insects, 10)
+    'Spider.setAsPrey('Plants, 1)
+    
+    'Insect.setAsPrey('Plants, 1)
+    'Insect.setAsPrey('Tree, 1)
+    
+    
+    'Hawk.setAsPrey('Snake, 1)
+    'Hawk.setAsPrey('Frog, 1)
+    'Hawk.setAsPrey('Rabbit, 1)
     
     // Finish Food Web Consumption
     // Finish Traits
     
     
     new RandomEvent called 'Earthquake withProbability .005 definedAs new Function (
-      (UpdatePopulation('Panda, 10))  ::
-      ('Jans updateMutation(0.5, 0.3))::
+      (UpdatePopulationBy('Panda, .5))  ::
+      (UpdatePopulationBy('Panda, .5)) ::
       If(('Dinosaurs getPopulation) < 500) (
            KillSpecies('Dinosaurs) ::
            End
