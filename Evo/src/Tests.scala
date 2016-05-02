@@ -22,24 +22,29 @@ object Tests extends Evo {
     new Species called 'Ents of 1000000 withCapacity 20000000
     new Species called 'Elves of 1000000 withCapacity 20000000
     
-    'Human.setAsPrey('Jaguar, 1)
+    'Human.setAsPrey('Jaguar, 0.1)
     'Human.setAsPrey('Rabbit, 1)
     'Human.setAsPrey('Plants, 2)
+    
+    
+    showEcosystem
+    simulate(5)
+    showEcosystem
     
     // Finish Food Web Consumption
     // Finish Traits
     
     
-    new RandomEvent called 'Earthquake withProbability .005 definedAs new Function (
-      (UpdatePopulation('Panda, 10))  ::
-      ('Jans updateMutation(0.5, 0.3))::
-      If(('Dinosaurs getPopulation) < 500) (
-           KillSpecies('Dinosaurs) ::
-           End
-      ) ::      
-      
-      End
-    )
+//    new RandomEvent called 'Earthquake withProbability .005 definedAs new Function (
+//      (UpdatePopulation('Panda, 10))  ::
+//      ('Jans updateMutation(0.5, 0.3))::
+//      If(('Dinosaurs getPopulation) < 500) (
+//           KillSpecies('Dinosaurs) ::
+//           End
+//      ) ::      
+//      
+//      End
+//    )
     
     
     /*
