@@ -369,9 +369,9 @@ class Evo {
       //show all the data for the a particular species
       def showAll() {
         println("Name: " + _name)
-        println("Population: " + _population.toLong)
+        println("Population: " + _population.toString)
         println("Start time: " + _time)
-        println("Carrying Capacity: " + _carryingcapacity)
+        println("Carrying Capacity: " + _carryingcapacity.toString())
         if (!preyEvent.isEmpty) {
           print("One " + _name + " consumes ")
           var count: Int = 0
@@ -425,15 +425,15 @@ class Evo {
         else{
           amountToRemove = population
         }
+        
         var netDiff = 0.0
-        if (_population == 0.0)
-        {
+        if(_population == 0.0){
           netDiff = 0.0
         }
-        else
-        {
+        else{
           netDiff = (amountToRemove.toDouble/_population).toDouble
         }
+        
         var newProportion : Double = 0.0
         var currentTuple : (Double, Double, Double) = (0.0, 0.0, 0.0)
         _traits(_traitReference(spTrait)).keys.foreach{ phenotype =>
@@ -453,7 +453,15 @@ class Evo {
       def add(births: Long, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
         var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1)
         
-        var netDiff = (births.toDouble/_population).toDouble
+        var netDiff = 0.0
+        if(_population == 0.0){
+          netDiff = 0.0
+        }
+        else{
+          netDiff = (births.toDouble/_population).toDouble
+        }
+        
+        
         var newProportion : Double = 0.0
         var currentTuple : (Double, Double, Double) = (0.0, 0.0, 0.0)
         _traits(_traitReference(spTrait)).keys.foreach{ phenotype =>
@@ -471,18 +479,29 @@ class Evo {
       }
       
       def add(births: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
-        population = (population * (births)).toLong
-        add(population, spTrait, givenType)
-        new ExpressionResult()
+        if(_population == 0.0){
+          new ExpressionResult()
+        }
+        else{
+          var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+          population = (population * (births)).toLong
+          add(population, spTrait, givenType)
+          new ExpressionResult()  
+        }
+        
       }
       
       def remove(deaths: Double, spTrait: Symbol, givenType: Symbol): ExpressionResult = {
-        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
-        
-        population = (population * (deaths)).toLong
-        remove(population, spTrait, givenType)
-        new ExpressionResult()
+
+        if(_population == 0.0){
+          new ExpressionResult
+        }
+        else{
+          var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+          population = (population * (deaths)).toLong
+          remove(population, spTrait, givenType)
+          new ExpressionResult()
+        }
       }
       
       

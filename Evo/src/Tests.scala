@@ -6,22 +6,22 @@ object Tests extends Evo {
   
     // Create All Species
     
-    new Species called 'Human of 2000 withCapacity 10000000 enterAt 0
-    new Species called 'Hawk of 2000 withCapacity 10000000 enterAt 0
-    new Species called 'Jaguar of 500 withCapacity 10000000 enterAt 0
-    new Species called 'Snake of 7500 withCapacity 10000000 enterAt 0
-    new Species called 'Spider of 100000 withCapacity 10000000 enterAt 0
+    new Species called 'Human of 20000 withCapacity 10000000 enterAt 0
+    new Species called 'Hawk of 500 withCapacity 10000000 enterAt 0
+    new Species called 'Jaguar of 800 withCapacity 10000000 enterAt 0
+    new Species called 'Snake of 5000 withCapacity 10000000 enterAt 0
+    new Species called 'Spider of 10000000 withCapacity 10000000 enterAt 0
     new Species called 'Insect of 100000000 withCapacity 5000000000L enterAt 0
-    new Species called 'Frog of 10000 withCapacity 10000000 enterAt 0
+    new Species called 'Frog of 20000 withCapacity 10000000 enterAt 0
     new Species called 'Rabbit of 10000 withCapacity 10000000 enterAt 0
-    new Species called 'Panda of 100 withCapacity 100000 enterAt 0
-    new Species called 'Deer of 100000 withCapacity 10000000 enterAt 0
-    new Species called 'Plant of 5000000 withCapacity 50000000 enterAt 0
-    new Species called 'Tree of 1000000 withCapacity 20000000 enterAt 0
+    new Species called 'Panda of 200 withCapacity 100000 enterAt 0
+    new Species called 'Deer of 10000 withCapacity 10000000 enterAt 0
+    new Species called 'Plant of 50000000 enterAt 0
+    new Species called 'Tree of 10000000 enterAt 0
     
     // Add all traits, phenotypes, and growth rates
     
-    'Human addTrait 'Height phenotype('Tall, (0.6, 0.7367907864257373, 0.7235326850043826)) phenotype ('Short, (0.4, 0.2, 0.15))
+    'Human addTrait 'Height phenotype('Tall, (0.6, 0.54, 0.22)) phenotype ('Short, (0.4, 0.538, 0.2))
     'Human addTrait 'EyeColor phenotype('Blue, (0.2, 0.6, 0.4)) phenotype ('Brown, (0.8, 0.1, 0.05))
     
     'Hawk addTrait 'Color phenotype('White, (0.68, 0.5, 0.2)) phenotype ('Brown, (0.22, 0.8, 0.3)) phenotype ('Black, (0.1, 0.8, 0.3))
@@ -49,39 +49,36 @@ object Tests extends Evo {
     
     // All predator/prey relationships
     
-    'Human.setAsPrey('Jaguar, 0.02)
-    'Human.setAsPrey('Rabbit, 0.1)
+    'Human.setAsPrey('Jaguar, 0.001)
+    'Human.setAsPrey('Rabbit, 0.005)
     'Human.setAsPrey('Plant, 2)
     
     'Hawk.setAsPrey('Snake, 1)
     'Hawk.setAsPrey('Frog, 1)
     'Hawk.setAsPrey('Rabbit, 1)
     
-    'Jaguar.setAsPrey('Human, 1)
-    'Jaguar.setAsPrey('Rabbit, 3)
-    'Jaguar.setAsPrey('Panda, 1)
-    'Jaguar.setAsPrey('Deer, 1)
+    'Jaguar.setAsPrey('Human, 0.25)
+    'Jaguar.setAsPrey('Rabbit, 1)
+    'Jaguar.setAsPrey('Panda, 0.25)
+    'Jaguar.setAsPrey('Deer, 0.5)
     
-    'Snake.setAsPrey('Spider, 10)
-    'Snake.setAsPrey('Frog, 3)
+    'Snake.setAsPrey('Spider, 5)
+    'Snake.setAsPrey('Frog, 2)
     'Snake.setAsPrey('Rabbit, 1)
     
-    'Spider.setAsPrey('Insect, 10)
-    'Spider.setAsPrey('Plant, 1)
+    'Spider.setAsPrey('Insect, 3)
+    'Spider.setAsPrey('Plant, 0.001)
     
-    'Insect.setAsPrey('Plant, 1)
-    'Insect.setAsPrey('Tree, 1)
+    'Insect.setAsPrey('Plant, 0.0001)
+    'Insect.setAsPrey('Tree, 0.00001)
     
-    'Frog.setAsPrey('Snake, 1)
-    'Frog.setAsPrey('Frog, 1)
-    'Frog.setAsPrey('Rabbit, 1)
+    'Frog.setAsPrey('Insect, 3)
+    'Frog.setAsPrey('Spider, 1)
     
-    'Plant.setAsPredator('Insect, 0.0001)
     'Plant.setAsPredator('Panda, 0.01)
     'Plant.setAsPredator('Deer, 0.01)
     'Plant.setAsPredator('Rabbit, 0.001)
     
-    'Tree.setAsPredator('Insect, 0.00001)
     'Tree.setAsPredator('Panda, 0.005)
     'Tree.setAsPredator('Deer, 0.005)
     
@@ -97,7 +94,9 @@ object Tests extends Evo {
     showEcosystem
     
     
+
     // Define some generic event
+
     
     new GenericEvent called 'RabbitExtinction definedAs new Function (
       'Human.setAsPrey('Deer, 0.5) ::
@@ -119,8 +118,10 @@ object Tests extends Evo {
       End
     )
     
+
     new RandomEvent called 'Deforestation withProbability .05 definedAs new Function (
       (UpdatePopulationBy('Tree, .8))  :: // 80% of trees remain 
+
       End
     )
     
@@ -133,10 +134,12 @@ object Tests extends Evo {
     
     // Define some deterministic events
     
+
     new DeterministicEvent called 'EarthDay at 500 definedAs new Function (
       Repeat (3) (
            UpdatePopulationBy('Tree, 1.1) ::
            UpdatePopulationBy('Plant, 1.05) ::
+
            End
       ) ::      
       End
@@ -153,9 +156,9 @@ object Tests extends Evo {
       End
     )
     
-    
-    simulate(500)
+    simulate(20)
     showEcosystem
+    
     
   }
 }

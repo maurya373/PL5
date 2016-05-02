@@ -11,10 +11,17 @@ object SmallTests extends Evo{
     'Dinosaurs capacity 300000
 
     'Dinosaurs addTrait 'EyeAnatomy phenotype('DualLid, (0.5, 0.15, 0.1)) phenotype ('SingleLid, (0.5, 0.14, 0.1))
+    
+    
     showEcosystem    
     simulate(5)
     showEcosystem
+    
+    'Dinosaurs addTrait 'EyeAnatomy phenotype('DualLid, (0.5, 0.15, 0.1)) phenotype ('SingleLid, (0.5, 0.14, 0.1))
+    
+    showEcosystem
     simulate(10)
+    showEcosystem
     
   }
 }
