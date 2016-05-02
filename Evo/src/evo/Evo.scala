@@ -146,7 +146,7 @@ class Evo {
       }
     }
 
-    //
+    //species eat each other
     def predation() {
       var updatedSpecies = Map[Symbol, Long]()
       // loop through all species
@@ -221,6 +221,17 @@ class Evo {
       }
 
     }
+    
+    def addMutations() {
+      EcoSystem.species.keys.foreach((sp) =>
+        if (sp.getTime() <= EcoSystem.worldTime)
+        {
+          sp.addMutation()
+        }
+      )
+    }
+    
+    
 
     def testTraits(currentSpecies: Species) {
       var currentTrait: Symbol = null
@@ -235,7 +246,9 @@ class Evo {
             accumulator += phenoMap(j)._1
           }
           if (accumulator != 1.0) {
-            println("\nWARNING\n" + "Proportions of trait \"" + currentTrait + "\" do not sum to 1.")
+            println("\n\n-------------------------------------\n"+"WARNING")
+            println("Proportions of trait " + currentTrait + " in species " + currentSpecies._name + " do not sum to 1.")
+            println("-------------------------------------\n\n")
           }
         }
       }
@@ -252,6 +265,12 @@ class Evo {
       var _population: Long = 0
 
       var _carryingcapacity: Long = Long.MaxValue
+      
+      //probability od a mutation occurring at any time step
+      var _probMutation : Double = 0.0
+      //proportion of population affected during mutations
+      var _mutationProportion : Double = 0.0
+      var _mutationNum : Long = 1
 
       //Trait name and reference index in _traits, for example:
       //"Eye Color" -> 0
@@ -266,7 +285,6 @@ class Evo {
 
       //prey of the species
       var preyEvent = Map[Symbol, (Long, Symbol)]()
-
 
       
 
@@ -297,6 +315,16 @@ class Evo {
       //setter for the _time property
       def enterAt(t: Int) = {
         _time = t
+        this
+      }
+      
+      def mutationRate(m : Double) = {
+        _probMutation = m
+        this
+      }
+      
+      def mutationProportion(m : Double) = {
+        _mutationProportion = m
         this
       }
 
@@ -344,13 +372,18 @@ class Evo {
         }
         if (this._traitReference != null) {
           var currentIndex = 0
+          var currentPropor : Double = 0.0
           this._traitReference.keys.foreach { i =>
             currentIndex = this._traitReference.apply(i)
             println("Trait: " + i)
             var currentMap = this._traits.apply(currentIndex)
             currentMap.keys.foreach { i =>
-              print("Phenotype = " + i)
-              println(" Occurence = " + currentMap(i))
+              currentPropor = currentMap(i)._1*100
+              print("Phenotype: " + i+" is ")
+              print(f"$currentPropor%2.2f")
+              print("% of population ")
+              print("Birth rate: " + currentMap(i)._2+" ")
+              print("Death rate: " + currentMap(i)._3+"\n")
             }
           }
         }
@@ -362,8 +395,80 @@ class Evo {
       }
 
 
+      def remove(deaths: Long, spTrait: Symbol, givenType: Symbol){
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        var amountToRemove : Long = 0
+        if(deaths <= population){
+          amountToRemove = deaths
+        }
+        else{
+          amountToRemove = population
+        }
+        
+        var netDiff = (amountToRemove.toDouble/_population).toDouble
+        var newProportion : Double = 0.0
+        var currentTuple : (Double, Double, Double) = (0.0, 0.0, 0.0)
+        _traits(_traitReference(spTrait)).keys.foreach{ phenotype =>
+          currentTuple = _traits(_traitReference(spTrait)).apply(phenotype)
+          if(phenotype.equals(givenType)){
+            newProportion =  (currentTuple._1 - netDiff)/(1-netDiff)
+          }
+          else{
+            newProportion =  (currentTuple._1)/(1-netDiff)
+          }
+          _traits(_traitReference(spTrait))(phenotype) = (newProportion, currentTuple._2, currentTuple._3)
+        }
+        _population -= amountToRemove
+      }
+      
+      def add(births: Long, spTrait: Symbol, givenType: Symbol){
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        
+        var netDiff = (births.toDouble/_population).toDouble
+        var newProportion : Double = 0.0
+        var currentTuple : (Double, Double, Double) = (0.0, 0.0, 0.0)
+        _traits(_traitReference(spTrait)).keys.foreach{ phenotype =>
+          currentTuple = _traits(_traitReference(spTrait)).apply(phenotype)
+          if(phenotype.equals(givenType)){
+            newProportion =  (currentTuple._1 + netDiff)/(1+netDiff)
+          }
+          else{
+            newProportion =  (currentTuple._1)/(1+netDiff)
+          }
+          _traits(_traitReference(spTrait))(phenotype) = (newProportion, currentTuple._2, currentTuple._3)
+        }
+        _population += births
+      }
+      
+      def add(births: Double, spTrait: Symbol, givenType: Symbol){
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        population = (population * (births)).toLong
+        add(population, spTrait, givenType)
+      }
+      
+      def remove(deaths: Double, spTrait: Symbol, givenType: Symbol){
+        var population = (_population*_traits(_traitReference(spTrait)).apply(givenType)._1).toLong
+        population = (population * (deaths)).toLong
+        remove(population, spTrait, givenType)
+      }
+      
+      
+      def updateMutation(probMutation: Double, propOccurence: Double) {
+        _probMutation = probMutation
+        _mutationProportion = propOccurence
+      }
 
-
+      
+       def addMutation() {
+        var death = EcoSystem.getRandomValue()
+        var growth = EcoSystem.getRandomValue() * EcoSystem.getRandomValue()
+        if (EcoSystem.getRandomValue() <= _probMutation)
+        {
+          _name addTrait Symbol("Mutation" + _mutationNum.toString()) 
+          phenotype(Symbol("With Mutation" + _mutationNum.toString()), (_mutationProportion, growth, death)) phenotype (Symbol("Without Mutation" + _mutationNum.toString()), (1.0 - _mutationProportion, 0.0, 0.0))
+          _mutationNum = _mutationNum + 1
+        }
+      }
 
       def setAsPrey(s: Symbol, consumption: Long) {
         
@@ -407,63 +512,63 @@ class Evo {
 
       //
 
-      def addTrait(traitName: Symbol) = {
-        if (this._traits == null) {
-          //Init traits list and add this map
-          this._currentTrait = traitName
-          this._traitReference = Map[Symbol, Int](traitName -> 0)
-          this._traits = new ArrayBuffer[Map[Symbol, (Double, Double, Double)]]
-          this
-          //phenotype calls will now add actual phenotypes to the appropriate Map in _traits
-        } else {
-          this._currentTrait = traitName
-          var newIndex = this._traits.size
-          this._traitReference += (traitName -> newIndex)
-          this
-          //phenotype calls will now add actual phenotypes to the appropriate Map in _traits
-        }
-      }
-
-      //
-      def phenotype(pheno: Symbol, phenoData: (Double, Double, Double)) = {
-        //Get index of current trait
-        var currentIndex = this._traitReference.apply(this._currentTrait)
-        //If there is a map at this index, add to it
-        if (this._traits.isDefinedAt(currentIndex)) {
-          //May need to create map?
-          var tempMap = this._traits.apply(currentIndex)
-
-          tempMap.+=(pheno -> phenoData)
-
-          this._traits.update(currentIndex, tempMap)
-          this
-          //Okay, added phenotype.
-        } else {
-          //CurrentIndex does not exist so need to create map.
-
-          var newMap = Map[Symbol, (Double, Double, Double)](pheno -> phenoData)
-
-          this._traits.insert(currentIndex, newMap)
-          this
-          //Added phenotype.
-        }
-      }
-
-      //
-
-      def showTrait(traitName: Symbol) {
-
-        var currentIndex = this._traitReference.apply(traitName)
-        println("Trait: " + traitName)
-        var currentMap = this._traits.apply(currentIndex)
-        currentMap.keys.foreach { i =>
-          print("Phenotype = " + i)
-
-          println(" Data = " + currentMap(i).toString())
-
-        }
+    def addTrait(traitName: Symbol) = {
+      if (this._traits == null) {
+        //Init traits list and add this map
+        this._currentTrait = traitName
+        this._traitReference = Map[Symbol, Int](traitName -> 0)
+        this._traits = new ArrayBuffer[Map[Symbol, (Double, Double, Double)]]
+        this
+        //phenotype calls will now add actual phenotypes to the appropriate Map in _traits
+      } else {
+        this._currentTrait = traitName
+        var newIndex = this._traits.size
+        this._traitReference += (traitName -> newIndex)
+        this
+        //phenotype calls will now add actual phenotypes to the appropriate Map in _traits
       }
     }
+
+    //
+    def phenotype(pheno: Symbol, phenoData: (Double, Double, Double)) = {
+      //Get index of current trait
+      var currentIndex = this._traitReference.apply(this._currentTrait)
+      //If there is a map at this index, add to it
+      if (this._traits.isDefinedAt(currentIndex)) {
+        //May need to create map?
+        var tempMap = this._traits.apply(currentIndex)
+
+        tempMap.+=(pheno -> phenoData)
+
+        this._traits.update(currentIndex, tempMap)
+        this
+        //Okay, added phenotype.
+      } else {
+        //CurrentIndex does not exist so need to create map.
+
+        var newMap = Map[Symbol, (Double, Double, Double)](pheno -> phenoData)
+
+        this._traits.insert(currentIndex, newMap)
+        this
+        //Added phenotype.
+      }
+    }
+
+    //
+
+    def showTrait(traitName: Symbol) {
+
+      var currentIndex = this._traitReference.apply(traitName)
+      println("Trait: " + traitName)
+      var currentMap = this._traits.apply(currentIndex)
+      currentMap.keys.foreach { i =>
+        print("Phenotype = " + i)
+
+        println(" Data = " + currentMap(i).toString())
+
+      }
+    }
+  }
 
     //EVENTS:
     //super class of both deterministic and random events
@@ -602,8 +707,12 @@ class Evo {
 
     /********* Simulate ***********/
     def simulate(time: Int) = {
-      //do time-1 because loop is inclusive  
-
+      //Test if trait proportions are valid  
+      EcoSystem.species.keys.foreach { (sp) =>
+          testTraits(sp)
+        }
+      
+      //do time-1 because loop is inclusive
       for (a <- 0 to time - 1) {
         println("Time Step " + (EcoSystem.worldTime + 1));
         println(" _______________________ ");
@@ -628,13 +737,7 @@ class Evo {
 
         predation()
         reproduction()
-
-        EcoSystem.species.keys.foreach { (sp) =>
-          testTraits(sp)
-        }
-
-//        showEcosystem
-
+        addMutations()
 
         //increment the time
         EcoSystem.worldTime += 1
@@ -697,8 +800,6 @@ class Evo {
     }
 
     
-
-    
      //Evo - kills a species
     class KillSpeciesClass(s: Symbol) extends Expression {
       EcoSystem.killSpecies(s)
@@ -718,6 +819,9 @@ class Evo {
 }
   
   /********* tests ***********/
+
+
+
   /*def main(args: Array[String]) = {
     //example of creating Species
     new Species called 'Pig of 1000 birthrate .4 deathrate .3
