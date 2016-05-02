@@ -11,13 +11,13 @@ object Tests extends Evo {
     new Species called 'Jaguar of 500 withCapacity 10000000 enterAt 0
     new Species called 'Snake of 7500 withCapacity 10000000 enterAt 0
     new Species called 'Spider of 100000 withCapacity 10000000 enterAt 0
-    new Species called 'Insects of 100000000 withCapacity 5000000000L enterAt 0
+    new Species called 'Insect of 100000000 withCapacity 5000000000L enterAt 0
     new Species called 'Frog of 10000 withCapacity 10000000 enterAt 0
     new Species called 'Rabbit of 10000 withCapacity 10000000 enterAt 0
     new Species called 'Panda of 100 withCapacity 100000 enterAt 0
     new Species called 'Deer of 100000 withCapacity 10000000 enterAt 0
-    new Species called 'Plants of 5000000 withCapacity 50000000 enterAt 0
-    new Species called 'Trees of 1000000 withCapacity 20000000 enterAt 0
+    new Species called 'Plant of 5000000 withCapacity 50000000 enterAt 0
+    new Species called 'Tree of 1000000 withCapacity 20000000 enterAt 0
     
     // Add all taits, phenotypes, and growth rates
     
@@ -32,7 +32,7 @@ object Tests extends Evo {
     
     'Spider addTrait 'Venomous phenotype('Lethal, (0.9, 0.3, 0.1)) phenotype ('Nonlethal, (0.1, 0.2, 0.15))
     
-    'Insects addTrait 'Exoskeleton phenotype('Yes, (0.75, 0.3, 0.1)) phenotype ('No, (0.25, 0.2, 0.15))
+    'Insect addTrait 'Exoskeleton phenotype('Yes, (0.75, 0.3, 0.1)) phenotype ('No, (0.25, 0.2, 0.15))
     
     'Frog addTrait 'Habitat phenotype('Water, (0.68, 0.3, 0.1)) phenotype ('Land, (0.32, 0.2, 0.15))
     
@@ -51,7 +51,7 @@ object Tests extends Evo {
     
     'Human.setAsPrey('Jaguar, 0.02)
     'Human.setAsPrey('Rabbit, 0.1)
-    'Human.setAsPrey('Plants, 2)
+    'Human.setAsPrey('Plant, 2)
     
     'Hawk.setAsPrey('Snake, 1)
     'Hawk.setAsPrey('Frog, 1)
@@ -66,10 +66,10 @@ object Tests extends Evo {
     'Snake.setAsPrey('Frog, 3)
     'Snake.setAsPrey('Rabbit, 1)
     
-    'Spider.setAsPrey('Insects, 10)
-    'Spider.setAsPrey('Plants, 1)
+    'Spider.setAsPrey('Insect, 10)
+    'Spider.setAsPrey('Plant, 1)
     
-    'Insect.setAsPrey('Plants, 1)
+    'Insect.setAsPrey('Plant, 1)
     'Insect.setAsPrey('Tree, 1)
     
     'Frog.setAsPrey('Snake, 1)
@@ -92,7 +92,7 @@ object Tests extends Evo {
     // Define some random events to occur during the simulation
     
     showEcosystem
-    simulate(5)
+    simulate(500)
     showEcosystem
     
     new RandomEvent called 'Earthquake withProbability .03 definedAs new Function (
@@ -105,7 +105,7 @@ object Tests extends Evo {
     )
     
     new RandomEvent called 'Deforestation withProbability .1 definedAs new Function (
-      (UpdatePopulationBy('Tree, .8))  :: // 80% of trees remain 
+      (UpdatePopulationBy('Tree, .8))  :: // 80% of Tree remain 
       End
     )
     
@@ -118,7 +118,7 @@ object Tests extends Evo {
     // Define some deterministic events
     
     new DeterministicEvent called 'EarthDay at 1000 definedAs new Function (
-      ('Jans remove (10, 'EyeColor, 'Blue)) ::
+      ('Tree add(10, 'EyeColor, 'Blue)) ::
       ('Jans updateMutation(0.5, 0.3))::
       If(('Dinosaurs getPopulation) < 500) (
            KillSpecies('Dinosaurs) ::
