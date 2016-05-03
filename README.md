@@ -61,7 +61,7 @@ Random Event
             End
        ) ::      
        End
-     )
+ )
 ```
 
 A random event occurs with at the defined probabilty at any given time step. Here, there is an If statement that checks if the population of Pandas are less then 10, and if so, run a print statement, and then call the method KillSpecies()
@@ -78,7 +78,7 @@ Deterministic Event
            End
       ) ::      
       End
-    )
+ )
 ```
 
 A deterministic event occurs exactly at the time step the user defines. Here, there is a Repeat statement, which runs the following statements to UpdatePopuluations by a rate a total of 3 times. 
@@ -90,9 +90,9 @@ Generic Event
  new GenericEvent called 'RabbitExtinction definedAs new Function (
       'Human.setAsPrey('Deer, 0.5) ::
       End
-    )
+ )
     
-    'Human.setAsPrey('Rabbit, 0.1, 'RabbitExtinction)
+ 'Human.setAsPrey('Rabbit, 0.1, 'RabbitExtinction)
 ```
 
 A generic event only only be applied for when a prey goes extinct. In this case, we apply the generic event called RabbitExtinction to Humans, who eat Rabbits. When the Rabbit population is in fact 0, Deer will be set as prey for Humans.
@@ -111,7 +111,4 @@ Call simulate with the number of time steps desired. Call showEcosystem to provi
 API
 ---
 
-List of Methods User can call
-...
-...
-
+TODO: List of Methods User can call
