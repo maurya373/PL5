@@ -20,11 +20,12 @@ object SmallTest3 extends Evo{
 
            End
       ) ::
-      (If(('Dinosaurs getPopulation) < 220000){
-      (new Species called 'Mammoths of 5000 withCapacity 100000 enterAt 0) ::
-      ('Mammoths addTrait 'TuskSize phenotype('Large, (0.7, 0.02, 0.0195)) phenotype('Small, (0.3, 0.02, 0.019999)) ) ::
+      // 300000*0.739 = 218700
+      (If(('Dinosaurs getPopulation) < 220000) (
+        (new Species called 'Mammoths of 5000 withCapacity 100000) ::
+        ('Mammoths addTrait 'TuskSize phenotype('Large, (0.7, 0.02, 0.0195)) phenotype('Small, (0.3, 0.02, 0.019999)) ) ::
       End
-      }) ::
+      )) ::
       End
     )
     
