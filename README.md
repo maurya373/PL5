@@ -164,24 +164,16 @@ Any number of phenotypes can be added to a trait. The percentages of the populat
 
 
 ```scala
-'Human.setAsPrey('Plant, 2)
 'Human.setAsPrey(x:Symbol, y:Double)
-```
-Plants are preyed upon by Humans. Each human eats 2 plants per time step. 
-
-
-```scala
-'Plant.setAsPredator('Panda, 0.01)
 'Plant.setAsPredator(x:Symbol, y:Double)
 ```
-The predator of Plants is a Panda. Each panda eats 0.01 plants per time step.
+Set up prey and predator for a species.
 
 
 ```scala
-'Hawk updateMutation(0.0001, .01)
 'Hawk updateMutation(x:Double, y:Double)
 ```
-Give Hawks the ability to mutate. 1% of the population (y) will mutate with a probability of 0.0001 (x)
+Give Hawks the ability to mutate. y % of the population will mutate with a probability of x %.
 
 
 ```scala
