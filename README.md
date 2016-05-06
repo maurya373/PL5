@@ -191,6 +191,32 @@ randomNumber
 Replaced with a random number between 0 and 1 [0.0, 1.0]. Can be used anywhere a Double is required.
 
 
+```scala
+UpdatePopulation(s: Symbol, l: Long)
+```
+Update the specified species' population to a Long l.
+
+```scala
+UpdateAllPopulationsTo(i: Int)
+```
+Update all species' populations to an Int i.
+
+```scala
+UpdateAllPopulationsBy(d: Double)
+```
+Update all populations by a rate d.
+
+```scala
+UpdatePopulationBy(s: Symbol, d: Double)
+```
+Update the specified species' population by a rate d.
+
+```scala
+KillSpecies(s: Symbol)
+```
+The population of the specified species is set to 0.
+
+
 Future Work
 -----
 - **Including Natural Resources instead of only Species:** Our current model is based on the assumption that the organisms and living entities in an ecosystem play the primary role in ecosystem dynamics. However, an ecosystem is defined as its living AND nonliving components. Therefore, we can extend our language to include nonliving components such as space, natural resources, etc.
