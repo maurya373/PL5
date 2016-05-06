@@ -116,7 +116,7 @@ A generic event only only be applied for when a prey goes extinct. In this case,
 
 Displaying Data
 ---------------
-```
+```scala
  simulate(100)
  showEcosystem
 ```
@@ -126,8 +126,68 @@ Call simulate with the number of time steps desired. Call showEcosystem to provi
 
 API
 ---
+```scala
+simulate(5)
+simulate(x:Int)
+```
+Run the simulation for 5 timesteps.
 
-TODO: List of Methods User can call
+
+```scala
+showEcosystem
+```
+Show the current state of the ecosystem. If called after running simulate(5), then you will see a detailed report of the status of each species in the ecosystem after 5 time steps.
+
+
+```scala
+new Species called 'Human of 20000 withCapacity 10000000 enterAt 0
+new Species called 'Human of x:[Int|Double|Long] withCapacity y:[Long] enterAt z:Int
+```
+Create a species called Human with the following properties:
+ a population of 20,000
+ a carrying capacity of 10,000,000
+ entering the simulation at time step 0
+
+
+```scala
+'Human addTrait 'Height phenotype('Tall, (0.6, 0.54, 0.22)) phenotype ('Short, (0.4, 0.538, 0.2))
+'Human addTrait i:Symbol phenotype(j:Symbol, (x:Double, y:Double, z:Long)) phenotype ('Short, (a:Double, b:Double, c:Long))
+```
+Add a trait to the Human species with the following properties:
+ the trait's name: Height
+ phenotypes:
+  Tall (60% of the population with a growth rate of 0.54 and a death rate of 0.22)
+  Short (40% of the population with a growth rate of 0.538 and a death rate of 0.2)
+Any number of phenotypes can be added to a trait. The percentages of the population that has each trait must sum to 1 (100%). If the don't, a warning will be displayed but the error will not be corrected. Any growth calculation will not be accurate.
+
+
+```scala
+'Human.setAsPrey('Plant, 2)
+'Human.setAsPrey(x:Symbol, y:Double)
+```
+Plants are preyed upon by Humans. Each human eats 2 plants per time step. 
+
+
+```scala
+'Plant.setAsPredator('Panda, 0.01)
+'Plant.setAsPredator(x:Symbol, y:Double)
+```
+The predator of Plants is a Panda. Each panda eats 0.01 plants per time step.
+
+
+```scala
+'Hawk updateMutation(0.0001, .01)
+'Hawk updateMutation(x:Double, y:Double)
+```
+Give Hawks the ability to mutate. 1% of the population (y) will mutate with a probability of 0.0001 (x)
+
+
+```scala
+randomNumber
+'Hawk updateMutation(randomNumber, randomNumber)
+```
+Replaced with a random number between 0 and 1 [0.0, 1.0]. Can be used anywhere a Double is required.
+
 
 Future Work
 -----
