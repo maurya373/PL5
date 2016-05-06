@@ -119,9 +119,11 @@ Displaying Data
 ```scala
  simulate(100)
  showEcosystem
+ simulate(5)
+ showEcosystem
 ```
 
-Call simulate with the number of time steps desired. Call showEcosystem to provide comprehensive data for each species.
+Call simulate with the number of time steps desired. Call showEcosystem to provide comprehensive data for each species. In the above example, we view the state of the ecosystem after 100 times steps, and then after 105 time steps.
 
 
 API
