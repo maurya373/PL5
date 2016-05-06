@@ -196,7 +196,7 @@ Update all species' populations to an Int i.
 ```scala
 UpdateAllPopulationsBy(d: Double)
 ```
-Update all populations by a rate d.
+Update all populations by a percentage d.
 
 ```scala
 UpdatePopulationBy(s: Symbol, d: Double)
