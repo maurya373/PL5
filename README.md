@@ -198,5 +198,3 @@ Future Work
 - **Error Handling:** Presently, our language has default settings if the programmer does not specify things. Additionally, it may issue warnings, but it will continue to operate. We plan to add proper error handling to this language.
 - **Multiple Ecosystems:** If we allow for multiple ecosystems, we can allow for interaction betweene ecosystems. Additionally, since our language is structured so that simulations of an ecosystem run serially, we could allow for parallelization in a multiple ecosystem setting.
 - **Have standard probability distributions for things like mutations** Many biological and evolutionary processes follow distributions. A mutation is essentially a trait that is either has a positive or negative effect on the survival of a species. We hope to allow the biologist(programmer) to specify a probability distribution from which we draw to determine if a mutation is positive or negative.
-
-TODO
