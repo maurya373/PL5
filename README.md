@@ -1,5 +1,10 @@
  
-Developed by Maurya Avirneni, Kshitij Delvadiya, Gilad Oved, and Prabhat Nagarajan
+Developed by Maurya Avirneni, Kshitij Delvadiya, Prabhat Nagarajan, and Gilad Oved
+
+Note
+-----
+
+Please view the section at the bottom for future work, which was omitted from our presentation due to time constraints.
 
 About
 -----
