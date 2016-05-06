@@ -9,7 +9,7 @@ Please view the section at the bottom for future work, which was omitted from ou
 About
 -----
 
-The goal of our programming language Evo is to provide a very general, simple, and powerful tool for biologists to model natural selection, evolution, and ecosystems. The narrowness in the scope of this language allows biologists to remain ignorant of types, objects and other programming language paradigms. They can just focus on writing the central components of the language. It is easy to simulate for the time periods you want and easy to obtain data after any time step.
+Evo is an internal Scala DSL. The goal of Evo is to provide a very general, simple, and powerful tool for biologists to model natural selection, evolution, and ecosystems. The narrowness in the scope of this language allows biologists to remain ignorant of types, objects and other programming language paradigms. They can just focus on writing the central components of the language. It is easy to simulate for the time periods you want and easy to obtain data after any time step.
 
 
 Usage
