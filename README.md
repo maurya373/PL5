@@ -193,4 +193,8 @@ Future Work
 -----
 - **Including Natural Resources instead of only Species:** Our current model is based on the assumption that the organisms and living entities in an ecosystem play the primary rle in ecosystem dynamics. However, ecosystems is defined as its living AND nonliving components. Therefore, we can extend our language to include nonliving components such as space, natural resources, etc.
 - **Data Output:** If a biologist is going to study simulations on an ecosystem, he/she would like the data from the simulation to be readily available. While Evo only stores the state of the ecosystem at the "current" time step, we could very easily modify it to store the entire history of the ecosystem. If we integrate this history with software like R, we can allow the biologist to easily generate graphs of the population over time, the trait distribution over time, etc.
+- **Correlated Traits:** One major implementation addition we should allow if correlated traits. For instance, our languages allows for there to be 50 blue-eyed crocodiles and 50 red-eyed crocodiles. We can also have 40 short ones and 60 tall ones. However our language does not allow one to specify how many short, blue-eyed crocodiles exist.
+- **Preferences of diet etc.** Our current predation structure involves one creature eating somenumber of another creature as a time step. For example, one human eats 3 chickens at each time step. We then allow the user to create an alternative event if chickens go extinct. However, we would like a more complex dietary structure, where species have dietary preferences, or certain traits in a species have dietary preferences, along with alternative preferences.
+- 
+
 TODO
