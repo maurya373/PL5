@@ -191,5 +191,6 @@ Replaced with a random number between 0 and 1 [0.0, 1.0]. Can be used anywhere a
 
 Future Work
 -----
-
+- **Including Natural Resources instead of only Species:** Our current model is based on the assumption that the organisms and living entities in an ecosystem play the primary rle in ecosystem dynamics. However, ecosystems is defined as its living AND nonliving components. Therefore, we can extend our language to include nonliving components such as space, natural resources, etc.
+- **Data Output:** If a biologist is going to study simulations on an ecosystem, he/she would like the data from the simulation to be readily available. While Evo only stores the state of the ecosystem at the "current" time step, we could very easily modify it to store the entire history of the ecosystem. If we integrate this history with software like R, we can allow the biologist to easily generate graphs of the population over time, the trait distribution over time, etc.
 TODO
