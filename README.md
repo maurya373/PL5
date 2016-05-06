@@ -201,7 +201,7 @@ Update all populations by a percentage d.
 ```scala
 UpdatePopulationBy(s: Symbol, d: Double)
 ```
-Update the specified species' population by a rate d.
+Update the specified species' population by a percentage d.
 
 ```scala
 KillSpecies(s: Symbol)
